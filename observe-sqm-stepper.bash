@@ -22,7 +22,7 @@
 # home directory
 homed=/home/sand
 
-nobs=1  		# number of times measured if 9999 then infinity
+nobs=9999  		# number of times measured if 9999 then infinity
 waittime=10             # at a mag of about 24 the integration time is around 60s
 movestep=16
 maxstep=2048
