@@ -21,7 +21,8 @@
 
 # home directory
 homed=/home/sand
-
+# activate gps option 0=off 1=on
+gpsf=1
 nobs=9999  		# number of times measured if 9999 then infinity
 waittime=10             # at a mag of about 24 the integration time is around 60s
 movestep=16
@@ -74,7 +75,56 @@ do /usr/local/bin/sqmleread.pl $sqmip 10001 1 > sqmdata.tmp
    let n=n+1
 done
 echo "Clear filter position +- "$movestep " = " $possqm
-
+#
+#  searching for gps port
+#
+   if [ $gpsf -eq 1 ] 
+   then echo "GPS mode activated"
+        if [ `ls /dev | grep ttyUSB0`  ] 
+        then echo "GPS look present." 
+#
+#            reading 10 gps transactions
+#
+             /bin/echo "Waiting 5 sec for GPS reading..."
+             /usr/bin/gpspipe -w -n 10 > $homed/public_html/cgi-bin/coords.tmp
+             /usr/bin/tail -1 $homed/public_html/cgi-bin/coords.tmp > $homed/public_html/cgi-bin/bidon.tmp
+             /bin/rm -f $homed/public_html/cgi-bin/coords.tmp
+             read bidon bidon bidon lat lon altitude bidon1 < $homed/public_html/cgi-bin/bidon.tmp
+             if [ "${bidon1:0:1}" != "" ]
+             then /bin/echo "GPS is connected, reading lat lon data."
+                  lon=`/bin/echo $lon"/-1" |/bin/bc -l`
+                  DD=`/bin/echo "scale=0;"$lon"/1" |/usr/bin/bc -l`
+                  dd=`/bin/echo "scale=0;"$lat"/1" |/usr/bin/bc -l`
+                  MMM=`/bin/echo "("$lon"-"$DD")*60" |/usr/bin/bc -l`
+                  MM=${MMM:0:2}
+                  mmm=`/bin/echo "("$lat"-"$dd")*60" |/usr/bin/bc -l`
+                  mm=${mmm:0:2}
+                  SSS=`/bin/echo "(("$lon"-"$DD")-"$MM"/60)*3600" |/usr/bin/bc -l`
+                  SS=${SSS:0:2}
+                  sss=`/bin/echo "(("$lat"-"$dd")-"$mm"/60)*3600" |/usr/bin/bc -l`
+                  ss=${sss:0:2}
+                  /bin/echo "GPS give Latitude:" $dd $mm $ss ", Longitude:" $DD $MM $SS "and Altitude:" $altitude
+             else /bin/echo "GPS not working: using coords. from localconfig"
+                  /bin/echo "Latitude:" $dd $mm $ss ", Longitude:" $DD $MM $SS
+             fi    
+        else /bin/echo "GPS not present: using coords. from localconfig"
+             /bin/echo "Latitude:" $dd $mm $ss ", Longitude:" $DD $MM $SS
+        fi
+   else  echo "GPS mode off"
+   fi
+   /bin/grep "Site_name" $homed/localconfig > $homed/public_html/cgi-bin/ligne.tmp
+   read bidon NAME bidon < $homed/public_html/cgi-bin/ligne.tmp
+#
+#  reading longitude and latitude from observation schedule
+#
+   if [ `grep -c " " $homed/public_html/cgi-bin/$myFile` -ne 0 ]
+   then /bin/grep Longitude $homed/localconfig > $homed/public_html/cgi-bin/ligne.tmp
+        read bidon DD MM SS bidon < $homed/public_html/cgi-bin/ligne.tmp
+        /bin/grep Latitude $homed/localconfig > $homed/public_html/cgi-bin/ligne.tmp
+        read bidon dd mm ss bidon < $homed/public_html/cgi-bin/ligne.tmp
+   else 
+        echo "Please put something in $homed/localconfig and restart observe-sqm-stepper.bash."
+   fi
 
 # according to unihedron here are the typical waiting time vs sky brightness
 # 19.83 = 1s
