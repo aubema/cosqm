@@ -38,13 +38,14 @@ recenter () {
       then let pos=pos+maxstep
       fi
       /usr/local/bin/MoveStepFilterWheel.py $ang 0  
-      let newsteps=maxsteps/8/2/movestep
+      let newsteps=maxstep/4/movestep
       findSQM $newsteps
 }
 # ============================
 # find the clear filter position
 findSQM () {
      let nstep=$1
+     echo "Searching number of steps: " $nstep
      memoi=3000
      n=0
      while [ $n -lt $nstep ] 
@@ -75,6 +76,7 @@ findSQM () {
           fi
           let n=n+1
          done
+         let possqm=possqm-filteroffset
          echo "Clearest filter position +- "$movestep " = " $possqm
 }
 # ==================================
@@ -109,6 +111,7 @@ waittime=10             # at a mag of about 24 the integration time is around 60
 movestep=16
 maxstep=2040
 daydelay=20    # add a delay between samplings during daytime to restrict the total amount of data
+filteroffset=15  # to ensure that the SQM fall in the center of the filter
 #
 # set band list
 # wavelengths 0:= Clear ,1:= Red 2:= Green ,3:= Blue ,4:= Yellow
