@@ -88,7 +88,6 @@ globalpos () {
              /bin/echo "Waiting 5 sec for GPS reading..."
              /usr/bin/gpspipe -w -n 10 > $homed/public_html/cgi-bin/coords.tmp
              /usr/bin/tail -1 $homed/public_html/cgi-bin/coords.tmp | sed 's/,/\n/g' | sed 's/"//g' | sed 's/:/ /g'> $homed/public_html/cgi-bin/bidon.tmp
-
              /bin/rm -f $homed/public_html/cgi-bin/coords.tmp
              grep lat $homed/public_html/cgi-bin/bidon.tmp > $homed/public_html/cgi-bin/bidon1.tmp
              read bidon lat bidon1 < $homed/public_html/cgi-bin/bidon1.tmp
@@ -96,8 +95,16 @@ globalpos () {
              read bidon lon bidon1 < $homed/public_html/cgi-bin/bidon1.tmp
              grep alt $homed/public_html/cgi-bin/bidon.tmp > $homed/public_html/cgi-bin/bidon1.tmp
              read bidon alt bidon1 < $homed/public_html/cgi-bin/bidon1.tmp
+             grep activated $homed/public_html/cgi-bin/bidon.tmp > $homed/public_html/cgi-bin/bidon1.tmp 
+             read bidon gpsdate bidon1 < $homed/public_html/cgi-bin/bidon1.tmp
              /bin/echo "GPS is connected, reading lat lon data."
              /bin/echo "GPS gives Latitude:" $lat ", Longitude:" $lon "and Altitude:" $alt
+             # set computer time
+             #pkill ntpd
+             #sleep 2
+             echo $gpsdate >> /home/sand/datedugps
+             #date -s "$gpsdate"
+             #/usr/sbin/ntpd   
 }
 # ==================================
 # ==================================
@@ -111,7 +118,7 @@ waittime=10             # at a mag of about 24 the integration time is around 60
 movestep=16
 maxstep=2040
 daydelay=20    # add a delay between samplings during daytime to restrict the total amount of data
-filteroffset=15  # to ensure that the SQM fall in the center of the filter
+filteroffset=0  # to ensure that the SQM fall in the center of the filter
 #
 # set band list
 # wavelengths 0:= Clear ,1:= Red 2:= Green ,3:= Blue ,4:= Yellow
