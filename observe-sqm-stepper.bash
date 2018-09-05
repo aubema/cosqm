@@ -85,7 +85,8 @@ globalpos () {
 #
 #            reading 10 gps transactions
 #
-             /bin/echo "Waiting 5 sec for GPS reading..."
+             /bin/echo "Waiting 3 min for GPS reading..."
+             sleep 180
              /usr/bin/gpspipe -w -n 10 > $homed/public_html/cgi-bin/coords.tmp
              /usr/bin/tail -1 $homed/public_html/cgi-bin/coords.tmp | sed 's/,/\n/g' | sed 's/"//g' | sed 's/:/ /g'> $homed/public_html/cgi-bin/bidon.tmp
              /bin/rm -f $homed/public_html/cgi-bin/coords.tmp
@@ -97,7 +98,7 @@ globalpos () {
              read bidon alt bidon1 < $homed/public_html/cgi-bin/bidon1.tmp
              grep activated $homed/public_html/cgi-bin/bidon.tmp > $homed/public_html/cgi-bin/bidon1.tmp 
              read bidon gpsdate bidon1 < $homed/public_html/cgi-bin/bidon1.tmp
-             /bin/echo "GPS is connected, reading lat lon data."
+             /bin/echo "GPS is connected, reading lat lon data. Longitude:" $lon
              if [ -z "${lon}" ]
              then let lon=0
                   let lat=0
