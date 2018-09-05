@@ -98,7 +98,7 @@ globalpos () {
              grep activated $homed/public_html/cgi-bin/bidon.tmp > $homed/public_html/cgi-bin/bidon1.tmp 
              read bidon gpsdate bidon1 < $homed/public_html/cgi-bin/bidon1.tmp
              /bin/echo "GPS is connected, reading lat lon data."
-             if [ ! lon ]
+             if [ $lon == "" ]
              then let lon=0
                   let lat=0
                   let alt=0
