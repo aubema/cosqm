@@ -85,8 +85,8 @@ globalpos () {
 #
 #            reading 10 gps transactions
 #
-             /bin/echo "Waiting 3 min for GPS reading..."
-             sleep 180
+             /bin/echo "Waiting 10 sec for GPS reading..."
+             sleep 10
              /usr/bin/gpspipe -w -n 10 > $homed/public_html/cgi-bin/coords.tmp
              /usr/bin/tail -1 $homed/public_html/cgi-bin/coords.tmp | sed 's/,/\n/g' | sed 's/"//g' | sed 's/:/ /g'> $homed/public_html/cgi-bin/bidon.tmp
              /bin/rm -f $homed/public_html/cgi-bin/coords.tmp
@@ -145,7 +145,7 @@ let nstep=maxstep/movestep
 pos=0
 findSQM $nstep
 #
-#  searching for gps port
+#  searching for gps
 #
 if [ $gpsf -eq 1 ] 
 then echo "GPS mode activated"
@@ -181,7 +181,33 @@ while [ $i -lt $nobs ]
 do  let count=count+1
       if [ $count -eq 10 ]   # set frequency of the recenter operation
       then recenter
-               let count=0
+           let count=0
+           #
+           #  searching for gps
+           #
+           if [ $gpsf -eq 1 ] 
+           then echo "GPS mode activated"
+                if [ `ls /dev | grep ttyUSB0`  ] 
+                then echo "GPS look present." 
+                     globalpos
+                else /bin/echo "GPS not present: using coords. from localconfig"
+                     #
+                     #  reading longitude and latitude from localconfig
+                     #
+                     if [ `grep -c " " $homed/public_html/cgi-bin/$myFile` -ne 0 ]
+                     then /bin/grep Longitude $homed/localconfig > $homed/public_html/cgi-bin/ligne.tmp
+                          read bidon lon bidon < $homed/public_html/cgi-bin/ligne.tmp
+                          /bin/grep Latitude $homed/localconfig > $homed/public_html/cgi-bin/ligne.tmp
+                          read bidon lat bidon < $homed/public_html/cgi-bin/ligne.tmp
+                          /bin/grep Altitude $homed/localconfig > $homed/public_html/cgi-bin/ligne.tmp
+                          read bidon alt bidon < $homed/public_html/cgi-bin/ligne.tmp
+                     else 
+                          echo "Please put something in "$homed"/localconfig and restart observe-sqm-stepper.bash."
+                     fi
+                     /bin/echo "Latitude:" $lat ", Longitude:" $lon
+                fi
+           else  echo "GPS mode off"
+           fi
       fi
       #  according to unihedron here are the typical waiting time vs sky brightness
       #  19.83 = 1s
