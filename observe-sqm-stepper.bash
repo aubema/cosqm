@@ -98,7 +98,7 @@ globalpos () {
              grep activated $homed/public_html/cgi-bin/bidon.tmp > $homed/public_html/cgi-bin/bidon1.tmp 
              read bidon gpsdate bidon1 < $homed/public_html/cgi-bin/bidon1.tmp
              /bin/echo "GPS is connected, reading lat lon data."
-             if [ $lon == "" ]
+             if [ -z "${lon}" ]
              then let lon=0
                   let lat=0
                   let alt=0
@@ -124,9 +124,6 @@ movestep=16
 maxstep=2040
 daydelay=20    # add a delay between samplings during daytime to restrict the total amount of data
 filteroffset=0  # to ensure that the SQM fall in the center of the filter
-lon=0
-lat=0
-alt=0
 #
 # set band list
 # wavelengths 0:= Clear ,1:= Red 2:= Green ,3:= Blue ,4:= Yellow
