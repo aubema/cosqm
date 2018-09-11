@@ -309,13 +309,13 @@ do  let count=count+1
    y=`date +%Y`
    mo=`date +%m`
    d=`date +%d`
-   if [ ! -d /home/sand/public_html/data/$y ]
-   then mkdir /home/sand/public_html/data/$y
+   if [ ! -d /var/www/html/data/$y ]
+   then mkdir /var/www/html/data/$y
    fi
-   if [ ! -d /home/sand/public_html/data/$y/$mo ]
-   then /bin/mkdir /home/sand/public_html/data/$y/$mo
+   if [ ! -d /var/www/html/data/$y/$mo ]
+   then /bin/mkdir /var/www/html/data/$y/$mo
    fi
-   echo $time $lat $lon $alt $sqmreading ${sbcals[0]} ${sbcals[1]} ${sbcals[2]} ${sbcals[3]} ${sbcals[4]}>> $homed/public_html/data/$y/$mo/$nomfich
+   echo $time $lat $lon $alt $sqmreading ${sbcals[0]} ${sbcals[1]} ${sbcals[2]} ${sbcals[3]} ${sbcals[4]}>> /var/www/html/data/$y/$mo/$nomfich
    if [ $seuil -lt 12 ]
        then /bin/sleep $daydelay    # waiting when it is daytime
    fi 

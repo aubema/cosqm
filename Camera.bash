@@ -26,14 +26,14 @@ cammodel="raspberry-pi"
 y=`date +%Y`
 mo=`date +%m`
 d=`date +%d`
-if [ ! -d /home/sand/public_html/data/$y ]
-then mkdir /home/sand/public_html/data/$y
+if [ ! -d /var/www/html/data/$y ]
+then mkdir /var/www/html/data/$y
 fi
-if [ ! -d /home/sand/public_html/data/$y/$mo ]
-then /bin/mkdir /home/sand/public_html/data/$y/$mo
+if [ ! -d /var/www/html/data/$y/$mo ]
+then /bin/mkdir /var/www/html/data/$y/$mo
 fi
-if [ ! -d /home/sand/public_html/data/$y/$mo/webcam ]
-then /bin/mkdir /home/sand/public_html/data/$y/$mo/webcam
+if [ ! -d /var/www/html/data/$y/$mo/webcam ]
+then /bin/mkdir /var/www/html/data/$y/$mo/webcam
 fi
 noname=`date +%Y-%m-%d_%H:%M:%S`
 cd /home/sand/public_html/cgi-bin
@@ -96,5 +96,5 @@ if [ ! $mean ] ; then mean=0 ; fi
 /bin/chmod a+rx /home/sand/public_html/lastwebcam.jpg
 /usr/bin/convert -resize 280x200 /home/sand/public_html/lastwebcam.jpg /home/sand/public_html/webcamsmall.jpg
 /bin/chmod a+rx /home/sand/public_html/webcamsmall.jpg
-mv /home/sand/public_html/cgi-bin/sky.jpg /home/sand/public_html/data/$y/$mo/webcam/$noname".jpg"
+mv /home/sand/public_html/cgi-bin/sky.jpg /var/www/html/data/$y/$mo/webcam/$noname".jpg"
 /bin/rm -f /home/sand/public_html/cgi-bin/mean.tmp
