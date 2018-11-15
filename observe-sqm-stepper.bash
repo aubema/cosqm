@@ -130,7 +130,8 @@ filteroffset=0  # to ensure that the SQM fall in the center of the filter
 # wavelengths 0:= Clear ,1:= Red 2:= Green ,3:= Blue ,4:= Yellow
 #
 filters=( 0 1 2 3 4 )
-calib=( 1.0 1.0 1.0 1.0 1.0 )
+calib=( 0.0 0.0 0.0 0.0 0.0 )
+# calib is the magnitude offset for each filter
 fname=(Clear Red Green Blue Yellow)
 grep filter_gain $homed/localconfig > toto
 read bidon gain bidon < toto
@@ -149,7 +150,7 @@ findSQM $nstep
 #
 if [ $gpsf -eq 1 ] 
 then echo "GPS mode activated"
-         if [ `ls /dev | grep ttyUSB0`  ] 
+         if [ `ls /dev | grep ttyACM0`  ] 
          then echo "GPS look present." 
                   globalpos
          else /bin/echo "GPS not present: using coords. from localconfig"
@@ -187,7 +188,7 @@ do  let count=count+1
            #
            if [ $gpsf -eq 1 ] 
            then echo "GPS mode activated"
-                if [ `ls /dev | grep ttyUSB0`  ] 
+                if [ `ls /dev | grep ttyACM0`  ] 
                 then echo "GPS look present." 
                      globalpos
                 else /bin/echo "GPS not present: using coords. from localconfig"
@@ -290,18 +291,35 @@ do  let count=count+1
       read sqm < sqmdata.tmp
       echo $sqm | sed 's/,/ /g' | sed 's/m//g' > toto.tmp
       read bidon sb bidon < toto.tmp
-      if [ $n -eq 0 ]
-      # keep the sqm clear value in mag per square arc second
-      then sqmreading=$sb
-      fi
-      echo "Sky brightness = " $sb
+#      if [ $n -eq 0 ]
+      # keep the sqm value in mag per square arc second
+#      then 
+#       sqmreading[$n]=$sb
+       sqmread[$n]=`/bin/echo $sb"+"${calib[$n]} |/usr/bin/bc -l`
+       sqmreads[$n]=`printf "%0.2f\n" ${sqmread[$n]}`
+#      elif [ $n -eq 1 ]
+#      then sqmreading=$sbr
+#      elif [ $n -eq 2 ]
+#      then sqmreading=$sbg
+#      elif [ $n -eq 3 ]
+#      then sqmreading=$sbb
+#      elif [ $n -eq 4 ]
+#      then sqmreading=$sby
+#      fi
+      echo "Sky brightness in band " $n " = " ${sqmreads[$n]}
       # convert mag par sq arc second to flux
-      sbcal[$n]=`/bin/echo "e((-1*"$sb"/2.5000000)*l(10))*"${calib[$n]} |/usr/bin/bc -l`
+#      sbcal[$n]=`/bin/echo "e((-1*"${sqmread[$n]}"/2.5000000)*l(10))" |/usr/bin/bc -l`
+# convert mpsas to W cm-2 sr-1
+# Sanchez de Miguel, A., M. Aube, Jaime Zamorano, M. Kocifaj, J. Roby, and C. Tapia. 
+# "Sky Quality Meter measurements in a colour-changing world." 
+# Monthly Notices of the Royal Astronomical Society 467, no. 3 (2017): 2966-2979.
+#      sbcal[$n]=`/bin/echo "270.0038*10^(-0.4*"${sqmread[$n]}")" |/usr/bin/bc -l`
+      sbcal[$n]=`/bin/echo "270.0038*e((-0.4*"${sqmread[$n]}")*l(10))" |/usr/bin/bc -l`
       sbcals[$n]=`printf "%0.6e\n" ${sbcal[$n]}`
       echo "Flux in band " $n " = "${sbcals[$n]}
       let n=n+1
    done
-   echo $sb | sed 's/\./ /g'  > toto.tmp  # on decoupe les entiers et decimales de la mesure sqm
+   echo ${sqmread[0]} | sed 's/\./ /g'  > toto.tmp  # on decoupe les entiers et decimales de la mesure sqm
    read seuil toto toto < toto.tmp
    nomfich=`date -u +"%Y-%m-%d"`
    nomfich=$nomfich".txt"
@@ -315,7 +333,7 @@ do  let count=count+1
    if [ ! -d /var/www/html/data/$y/$mo ]
    then /bin/mkdir /var/www/html/data/$y/$mo
    fi
-   echo $time $lat $lon $alt $sqmreading ${sbcals[0]} ${sbcals[1]} ${sbcals[2]} ${sbcals[3]} ${sbcals[4]}>> /var/www/html/data/$y/$mo/$nomfich
+   echo $time $lat $lon $alt ${sqmreads[0]} ${sqmreads[1]} ${sqmreads[2]} ${sqmreads[3]} ${sqmreads[4]} ${sbcals[0]} ${sbcals[1]} ${sbcals[2]} ${sbcals[3]} ${sbcals[4]}>> /var/www/html/data/$y/$mo/$nomfich
    if [ $seuil -lt 12 ]
        then /bin/sleep $daydelay    # waiting when it is daytime
    fi 
