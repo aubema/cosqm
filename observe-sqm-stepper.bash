@@ -49,10 +49,10 @@ findSQM () {
      memoi=3000
      n=0
      while [ $n -lt $nstep ] 
-     do /usr/local/bin/sqmleread.pl $sqmip 10001 1 > sqmdata.tmp    
-          read sqm < sqmdata.tmp
-          echo $sqm | sed 's/,/ /g' | sed 's/m/ /g' | sed 's/\./ /g' > toto.tmp
-          read bidon sqmm sqmd bidon < toto.tmp
+     do /usr/local/bin/sqmleread.pl $sqmip 10001 1 > /root/sqmdata.tmp    
+          read sqm < /root/sqmdata.tmp
+          echo $sqm | sed 's/,/ /g' | sed 's/m/ /g' | sed 's/\./ /g' > /root/toto.tmp
+          read bidon sqmm sqmd bidon < /root/toto.tmp
          # remove leading zero to the sky brightness
           if [ ${sqmm:0:1} == 0 ]
           then sqmm=`echo $sqmm | sed 's/0//g'`
@@ -78,6 +78,7 @@ findSQM () {
          done
          let possqm=possqm-filteroffset
          echo "Clearest filter position +- "$movestep " = " $possqm
+
 }
 # ==================================
 # global positioning system
@@ -87,17 +88,17 @@ globalpos () {
 #
              /bin/echo "Waiting 10 sec for GPS reading..."
              sleep 10
-             /usr/bin/gpspipe -w -n 10 > $homed/public_html/cgi-bin/coords.tmp
-             /usr/bin/tail -1 $homed/public_html/cgi-bin/coords.tmp | sed 's/,/\n/g' | sed 's/"//g' | sed 's/:/ /g'> $homed/public_html/cgi-bin/bidon.tmp
-             /bin/rm -f $homed/public_html/cgi-bin/coords.tmp
-             grep lat $homed/public_html/cgi-bin/bidon.tmp > $homed/public_html/cgi-bin/bidon1.tmp
-             read bidon lat bidon1 < $homed/public_html/cgi-bin/bidon1.tmp
-             grep lon $homed/public_html/cgi-bin/bidon.tmp > $homed/public_html/cgi-bin/bidon1.tmp
-             read bidon lon bidon1 < $homed/public_html/cgi-bin/bidon1.tmp
-             grep alt $homed/public_html/cgi-bin/bidon.tmp > $homed/public_html/cgi-bin/bidon1.tmp
-             read bidon alt bidon1 < $homed/public_html/cgi-bin/bidon1.tmp
-             grep activated $homed/public_html/cgi-bin/bidon.tmp > $homed/public_html/cgi-bin/bidon1.tmp 
-             read bidon gpsdate bidon1 < $homed/public_html/cgi-bin/bidon1.tmp
+             /usr/bin/gpspipe -w -n 10 > /root/coords.tmp
+             /usr/bin/tail -2 /root/coords.tmp | sed 's/,/\n/g' | sed 's/"//g' | sed 's/:/ /g'> /root/bidon.tmp
+#             /bin/rm -f /root/coords.tmp
+             grep lat /root/bidon.tmp > /root/bidon1.tmp
+             read bidon lat bidon1 < /root/bidon1.tmp
+             grep lon /root/bidon.tmp > /root/bidon1.tmp
+             read bidon lon bidon1 < /root/bidon1.tmp
+             grep alt /root/bidon.tmp > /root/bidon1.tmp
+             read bidon alt bidon1 < /root/bidon1.tmp
+             grep activated /root/bidon.tmp > /root/bidon1.tmp 
+             read bidon gpsdate bidon1 < /root/bidon1.tmp
              /bin/echo "GPS is connected, reading lat lon data. Longitude:" $lon
              if [ -z "${lon}" ]
              then let lon=0
@@ -108,15 +109,13 @@ globalpos () {
              # set computer time
              #pkill ntpd
              #sleep 2
-             echo $gpsdate >> /home/sand/datedugps
+             echo $gpsdate >> /root/datedugps
              #date -s "$gpsdate"
              #/usr/sbin/ntpd   
 }
 # ==================================
 # ==================================
 # main
-# home directory
-homed=/home/sand
 # activate gps option 0=off 1=on
 gpsf=1
 nobs=9999  		# number of times measured if 9999 then infinity
@@ -133,12 +132,12 @@ filters=( 0 1 2 3 4 )
 calib=( 0.0 0.0 0.0 0.0 0.0 )
 # calib is the magnitude offset for each filter
 fname=(Clear Red Green Blue Yellow)
-grep filter_gain $homed/localconfig > toto
-read bidon gain bidon < toto
-grep filter_offset $homed/localconfig > toto
-read bidon offset bidon < toto
-grep sqmIP $homed/localconfig > toto # sqmIP est le mot cle cherche dans le localconfig 
-read bidon sqmip bidon < toto
+grep filter_gain /home/sand/localconfig > /root/toto
+read bidon gain bidon < /root/toto
+grep filter_offset /home/sand/localconfig > /root/toto
+read bidon offset bidon < /root/toto
+grep sqmIP /home/sand/localconfig > /root/toto # sqmIP est le mot cle cherche dans le localconfig 
+read bidon sqmip bidon < /root/toto
 # find the clear filter
 # one complete rotation in half step mode (mode 1) is maxstep=4080 i.e. 1 step = 0.087890625 deg
 # if you use the full step mode (mode 0) then maxstep=2040 is the number of steps i.e. 1 step = 0.17578125
@@ -157,22 +156,22 @@ then echo "GPS mode activated"
                 #
                 #  reading longitude and latitude from localconfig
                 #
-                if [ `grep -c " " $homed/public_html/cgi-bin/$myFile` -ne 0 ]
-                then /bin/grep Longitude $homed/localconfig > $homed/public_html/cgi-bin/ligne.tmp
-                         read bidon lon bidon < $homed/public_html/cgi-bin/ligne.tmp
-                         /bin/grep Latitude $homed/localconfig > $homed/public_html/cgi-bin/ligne.tmp
-                         read bidon lat bidon < $homed/public_html/cgi-bin/ligne.tmp
-                         /bin/grep Altitude $homed/localconfig > $homed/public_html/cgi-bin/ligne.tmp
-                        read bidon alt bidon < $homed/public_html/cgi-bin/ligne.tmp
+                if [ `grep -c " " /home/sand/localconfig` -ne 0 ]
+                then /bin/grep Longitude /home/sand/localconfig > /root/ligne.tmp
+                         read bidon lon bidon < /root/ligne.tmp
+                         /bin/grep Latitude /home/sand/localconfig > /root/ligne.tmp
+                         read bidon lat bidon < /root/ligne.tmp
+                         /bin/grep Altitude /home/sand/localconfig > /root/ligne.tmp
+                        read bidon alt bidon < /root/ligne.tmp
                 else 
-                        echo "Please put something in "$homed"/localconfig and restart observe-sqm-stepper.bash."
+                        echo "Please put something in /home/sand/localconfig and restart observe-sqm-stepper.bash."
                 fi
                 /bin/echo "Latitude:" $lat ", Longitude:" $lon
          fi
 else  echo "GPS mode off"
 fi
-/bin/grep "Site_name" $homed/localconfig > $homed/public_html/cgi-bin/ligne.tmp
-read bidon NAME bidon < $homed/public_html/cgi-bin/ligne.tmp
+/bin/grep "Site_name" /home/sand/localconfig > /root/ligne.tmp
+read bidon NAME bidon < /root/ligne.tmp
 #
 # loop
 #
@@ -195,15 +194,15 @@ do  let count=count+1
                      #
                      #  reading longitude and latitude from localconfig
                      #
-                     if [ `grep -c " " $homed/public_html/cgi-bin/$myFile` -ne 0 ]
-                     then /bin/grep Longitude $homed/localconfig > $homed/public_html/cgi-bin/ligne.tmp
-                          read bidon lon bidon < $homed/public_html/cgi-bin/ligne.tmp
-                          /bin/grep Latitude $homed/localconfig > $homed/public_html/cgi-bin/ligne.tmp
-                          read bidon lat bidon < $homed/public_html/cgi-bin/ligne.tmp
-                          /bin/grep Altitude $homed/localconfig > $homed/public_html/cgi-bin/ligne.tmp
-                          read bidon alt bidon < $homed/public_html/cgi-bin/ligne.tmp
+                     if [ `grep -c " " /home/sand/localconfig` -ne 0 ]
+                     then /bin/grep Longitude /home/sand/localconfig > /root/ligne.tmp
+                          read bidon lon bidon < /root/ligne.tmp
+                          /bin/grep Latitude /home/sand/localconfig > /root/ligne.tmp
+                          read bidon lat bidon < /root/ligne.tmp
+                          /bin/grep Altitude /home/sand/localconfig > /root/ligne.tmp
+                          read bidon alt bidon < /root/ligne.tmp
                      else 
-                          echo "Please put something in "$homed"/localconfig and restart observe-sqm-stepper.bash."
+                          echo "Please put something in /home/sand/localconfig and restart observe-sqm-stepper.bash."
                      fi
                      /bin/echo "Latitude:" $lat ", Longitude:" $lon
                 fi
@@ -241,16 +240,16 @@ do  let count=count+1
       let waittime=10
       echo "Waiting " $waittime " s to determine optimal acquisition time"
       /bin/sleep $waittime
-      /usr/local/bin/sqmleread.pl $sqmip 10001 1 > sqmdata.tmp
-      read sqm < sqmdata.tmp
-      echo $sqm | sed 's/,/ /g' | sed 's/s//g' > toto.tmp
-      read bidon bidon bidon bidon tim bidon < toto.tmp
+      /usr/local/bin/sqmleread.pl $sqmip 10001 1 > /root/sqmdata.tmp
+      read sqm < /root/sqmdata.tmp
+      echo $sqm | sed 's/,/ /g' | sed 's/s//g' | sed 's/C/ C/g' > /root/toto.tmp
+      read bidon bidon bidon bidon tim temp bidon < /root/toto.tmp
       echo "Decimal readout time: " $tim  
       # default wait time set to the acquisition time with the red filter
-      echo $tim | sed 's/\./ /g'  > toto.tmp
-      read tim timd toto < toto.tmp
-      echo $tim | sed 's/000//g'  > toto.tmp
-      read tim toto < toto.tmp
+      echo $tim | sed 's/\./ /g'  > /root/toto.tmp
+      read tim timd toto < /root/toto.tmp
+      echo $tim | sed 's/000//g'  > /root/toto.tmp
+      read tim toto < /root/toto.tmp
       if [ $timd -ge 500 ]
       then let tim=tim+1
       fi
@@ -286,29 +285,16 @@ do  let count=count+1
       echo "Reading sqm, Filter: " $n
       echo "Waiting time:" $waittime
       /bin/sleep $waittime         # let enough time to be sure that the reading comes from this filter
-      /usr/local/bin/sqmleread.pl $sqmip 10001 1 > sqmdata.tmp
+      /usr/local/bin/sqmleread.pl $sqmip 10001 1 > /root/sqmdata.tmp
       echo "End of reading"      
-      read sqm < sqmdata.tmp
-      echo $sqm | sed 's/,/ /g' | sed 's/m//g' > toto.tmp
-      read bidon sb bidon < toto.tmp
-#      if [ $n -eq 0 ]
+      read sqm < /root/sqmdata.tmp
+      echo $sqm | sed 's/,/ /g' | sed 's/m//g' > /root/toto.tmp
+      read bidon sb bidon < /root/toto.tmp
       # keep the sqm value in mag per square arc second
-#      then 
-#       sqmreading[$n]=$sb
-       sqmread[$n]=`/bin/echo $sb"+"${calib[$n]} |/usr/bin/bc -l`
-       sqmreads[$n]=`printf "%0.2f\n" ${sqmread[$n]}`
-#      elif [ $n -eq 1 ]
-#      then sqmreading=$sbr
-#      elif [ $n -eq 2 ]
-#      then sqmreading=$sbg
-#      elif [ $n -eq 3 ]
-#      then sqmreading=$sbb
-#      elif [ $n -eq 4 ]
-#      then sqmreading=$sby
-#      fi
+      sqmread[$n]=`/bin/echo $sb"+"${calib[$n]} |/usr/bin/bc -l`
+      sqmreads[$n]=`printf "%0.2f\n" ${sqmread[$n]}`
       echo "Sky brightness in band " $n " = " ${sqmreads[$n]}
       # convert mag par sq arc second to flux
-#      sbcal[$n]=`/bin/echo "e((-1*"${sqmread[$n]}"/2.5000000)*l(10))" |/usr/bin/bc -l`
 # convert mpsas to W cm-2 sr-1
 # Sanchez de Miguel, A., M. Aube, Jaime Zamorano, M. Kocifaj, J. Roby, and C. Tapia. 
 # "Sky Quality Meter measurements in a colour-changing world." 
@@ -319,8 +305,8 @@ do  let count=count+1
       echo "Flux in band " $n " = "${sbcals[$n]}
       let n=n+1
    done
-   echo ${sqmread[0]} | sed 's/\./ /g'  > toto.tmp  # on decoupe les entiers et decimales de la mesure sqm
-   read seuil toto toto < toto.tmp
+   echo ${sqmread[0]} | sed 's/\./ /g'  > /root/toto.tmp  # on decoupe les entiers et decimales de la mesure sqm
+   read seuil toto toto < /root/toto.tmp
    nomfich=`date -u +"%Y-%m-%d"`
    nomfich=$nomfich".txt"
    time=`date +%Y-%m-%d" "%H:%M:%S`
@@ -333,7 +319,7 @@ do  let count=count+1
    if [ ! -d /var/www/html/data/$y/$mo ]
    then /bin/mkdir /var/www/html/data/$y/$mo
    fi
-   echo $time $lat $lon $alt ${sqmreads[0]} ${sqmreads[1]} ${sqmreads[2]} ${sqmreads[3]} ${sqmreads[4]} ${sbcals[0]} ${sbcals[1]} ${sbcals[2]} ${sbcals[3]} ${sbcals[4]}>> /var/www/html/data/$y/$mo/$nomfich
+   echo $time $lat $lon $alt $temp ${sqmreads[0]} ${sqmreads[1]} ${sqmreads[2]} ${sqmreads[3]} ${sqmreads[4]} ${sbcals[0]} ${sbcals[1]} ${sbcals[2]} ${sbcals[3]} ${sbcals[4]}>> /var/www/html/data/$y/$mo/$nomfich
    if [ $seuil -lt 12 ]
        then /bin/sleep $daydelay    # waiting when it is daytime
    fi 
