@@ -1,4 +1,5 @@
 #!/bin/bash 
+#
 #   
 #    Copyright (C) 2018  Martin Aube Mia Caron
 #
