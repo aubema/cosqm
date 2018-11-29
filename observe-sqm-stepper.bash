@@ -21,8 +21,7 @@
 # =============================
 # reset the center of the clear filter
 recenter () {
-      maxstep=2040/3
-      movestep=16
+      let maxstep2=maxstep/3
       echo "recenter" $possqm
       let ang=possqm-maxstep/8-pos
       if [ $ang -ge $maxstep ] 
@@ -41,7 +40,7 @@ recenter () {
       then let pos=pos+maxstep
       fi
       /usr/local/bin/MoveStepFilterWheel.py $ang 0  
-      let newsteps=maxstep/movestep
+      let newsteps=maxstep2/movestep
       findSQM $newsteps
 }
 # ============================
@@ -51,7 +50,6 @@ findSQM () {
 # ----> parameter to set
 #
      filteroffset=0  # to ensure that the SQM fall in the center of the filter
-     movestep=16
      let nstep=$1
      echo "Searching number of steps: " $nstep
      memoi=3000
