@@ -23,7 +23,7 @@
 recenter () {
       let maxstep2=maxstep/3
       echo "recenter" $possqm
-      let ang=possqm-maxstep/8-pos
+      let ang=possqm-maxstep2-pos
       if [ $ang -ge $maxstep ] 
       then let ang=ang-maxstep
       fi
