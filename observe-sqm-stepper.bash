@@ -246,7 +246,7 @@ do    #  according to unihedron here are the typical waiting time vs sky brightn
       let waittime=tim+1
       echo "Required acquistion time:" $waittime
       let count=count+1
-      if [ $count -eq 2 ] && [ $seuil -lt 10 ]  # set frequency of the recenter operation
+      if [ $count -eq 2 ] && [ $seuil -gt 10 ]  # set frequency of the recenter operation
       then findSQM
            let count=0
            #
