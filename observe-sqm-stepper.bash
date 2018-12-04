@@ -49,8 +49,8 @@ findSQM () {
 #
 # ----> parameter to set
 #
-     # set acquisition time to 15s
-     let waittime=10
+     # set acquisition time to 5s
+     let waittime=5
      filteroffset=0  # to ensure that the SQM fall in the center of the filter
      let movestep=maxstep/10
      let nstep=maxstep/movestep
@@ -89,11 +89,11 @@ findSQM () {
           /bin/sleep $waittime  
         done
         echo "Clearest filter position +- "$movestep " = " $possqm
-        let ang=possqm-2*movestep-pos
+        let ang=possqm-movestep-pos
         let pos=pos+ang
         /usr/local/bin/MoveStepFilterWheel.py $ang 0
         let movestep=movestep/2
-        let nstep=6
+        let nstep=3
     
      done
      let possqm=possqm-filteroffset
