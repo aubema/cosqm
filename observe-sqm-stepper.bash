@@ -50,7 +50,7 @@ findSQM () {
 # ----> parameter to set
 #
      # set acquisition time to 15s
-     let waittime=7
+     let waittime=10
      filteroffset=0  # to ensure that the SQM fall in the center of the filter
      let movestep=maxstep/30
      let nstep=maxstep/movestep
