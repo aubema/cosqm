@@ -50,9 +50,9 @@ findSQM () {
 # ----> parameter to set
 #
      # set acquisition time to 15s
-     let waittime=5
+     let waittime=7
      filteroffset=0  # to ensure that the SQM fall in the center of the filter
-     let movestep=maxstep/20
+     let movestep=maxstep/25
      let nstep=maxstep/movestep
      echo "Searching SQM position..." ; date
      while [ $movestep -gt 3 ]
