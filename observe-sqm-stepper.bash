@@ -274,7 +274,7 @@ do    #  according to unihedron here are the typical waiting time vs sky brightn
            fi
       else
            let dodo=
-           /bin/sleep
+           /bin/sleep 1
       fi
 
       if [  $nobs != 9999 ] 
