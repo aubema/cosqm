@@ -88,11 +88,11 @@ findSQM () {
            let n=n+1
         done
         echo "Clearest filter position +- "$movestep " = " $possqm
-        let ang=possqm-movestep-pos
+        let ang=possqm-2*movestep-pos
         let pos=pos+ang
         /usr/local/bin/MoveStepFilterWheel.py $ang 0
         let movestep=movestep/2
-        let nstep=2*movestep      
+        let nstep=8      
      done
      let possqm=possqm-filteroffset
      echo "Final SQM position:" $possqm ; date
