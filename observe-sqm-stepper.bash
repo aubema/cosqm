@@ -49,42 +49,52 @@ findSQM () {
 #
 # ----> parameter to set
 #
+     # set acquisition time to 15s
+     let waittime=15
      filteroffset=0  # to ensure that the SQM fall in the center of the filter
-     let nstep=$1
-     echo "Searching number of steps: " $nstep
-     memoi=3000
-     n=0
-     while [ $n -lt $nstep ] 
-     do /usr/local/bin/sqmleread.pl $sqmip 10001 1 > /root/sqmdata.tmp    
-          read sqm < /root/sqmdata.tmp
-          echo $sqm | sed 's/,/ /g' | sed 's/m/ /g' | sed 's/\./ /g' > /root/toto.tmp
-          read bidon sqmm sqmd bidon < /root/toto.tmp
-         # remove leading zero to the sky brightness
-          if [ ${sqmm:0:1} == 0 ]
-          then sqmm=`echo $sqmm | sed 's/0//g'`
-          fi
-          if [ ${sqmd:0:1} == 0 ]
-          then sqmd=`echo $sqmd | sed 's/0//g'`
-          fi
-          let meas=sqmm*100+sqmd
-          if [ $meas -lt $memoi ]
-          then let memoi=meas
-                   let possqm=pos
-                   echo "Found clearer position = " $possqm
-          fi
-          /usr/local/bin/MoveStepFilterWheel.py $movestep 0
-          let pos=pos+movestep
-          if [ $pos -ge $maxstep ] 
-          then let pos=pos-maxstep
-          fi
-          if [ $pos -le -$maxstep ] 
-          then let pos=pos+maxstep
-          fi
-          let n=n+1
-         done
-         let possqm=possqm-filteroffset
-         echo "Clearest filter position +- "$movestep " = " $possqm
-
+     let movestep=maxstep/20
+     let nstep=maxstep/movestep
+     echo "Searching SQM position..." ; date
+     while [ $movestep -gt 8 ]
+     do echo "Searching number of trials: " $nstep "Skipping " $movestep "steps" 
+        memoi=3000
+        n=0
+        while [ $n -lt $nstep ] 
+        do /usr/local/bin/sqmleread.pl $sqmip 10001 1 > /root/sqmdata.tmp    
+           read sqm < /root/sqmdata.tmp
+           echo $sqm | sed 's/,/ /g' | sed 's/m/ /g' | sed 's/\./ /g' > /root/toto.tmp
+           read bidon sqmm sqmd bidon < /root/toto.tmp
+           # remove leading zero to the sky brightness
+           if [ ${sqmm:0:1} == 0 ]
+           then sqmm=`echo $sqmm | sed 's/0//g'`
+           fi
+           if [ ${sqmd:0:1} == 0 ]
+           then sqmd=`echo $sqmd | sed 's/0//g'`
+           fi
+           let meas=sqmm*100+sqmd
+           if [ $meas -lt $memoi ]
+           then let memoi=meas
+                let possqm=pos
+                echo "Found clearer position = " $possqm
+           fi
+           /usr/local/bin/MoveStepFilterWheel.py $movestep 0
+           let pos=pos+movestep
+           if [ $pos -ge $maxstep ] 
+           then let pos=pos-maxstep
+           fi
+           if [ $pos -le -$maxstep ] 
+           then let pos=pos+maxstep
+           fi
+           let n=n+1
+        done
+        echo "Clearest filter position +- "$movestep " = " $possqm
+        let ang=possqm-movestep-pos
+        /usr/local/bin/MoveStepFilterWheel.py $ang 0
+        let nstep=2*movestep
+        let movestep=movestep/2        
+     done
+     let possqm=possqm-filteroffset
+     echo "Final SQM position:" $possqm ; date
 }
 # ==================================
 # global positioning system
@@ -149,7 +159,7 @@ read bidon sqmip bidon < /root/toto
 # if you use the full step mode (mode 0) then maxstep=2040 is the number of steps i.e. 1 step = 0.17578125
 let nstep=maxstep/movestep
 pos=0
-findSQM $nstep
+findSQM
 #
 #  searching for gps
 #
@@ -184,38 +194,7 @@ read bidon NAME bidon < /root/ligne.tmp
 i=0
 count=0
 while [ $i -lt $nobs ]
-do  let count=count+1
-      if [ $count -eq 10 ]   # set frequency of the recenter operation
-      then recenter
-           let count=0
-           #
-           #  searching for gps
-           #
-           if [ $gpsf -eq 1 ] 
-           then echo "GPS mode activated"
-                if [ `ls /dev | grep ttyACM0`  ] 
-                then echo "GPS look present." 
-                     globalpos
-                else /bin/echo "GPS not present: using coords. from localconfig"
-                     #
-                     #  reading longitude and latitude from localconfig
-                     #
-                     if [ `grep -c " " /home/sand/localconfig` -ne 0 ]
-                     then /bin/grep Longitude /home/sand/localconfig > /root/ligne.tmp
-                          read bidon lon bidon < /root/ligne.tmp
-                          /bin/grep Latitude /home/sand/localconfig > /root/ligne.tmp
-                          read bidon lat bidon < /root/ligne.tmp
-                          /bin/grep Altitude /home/sand/localconfig > /root/ligne.tmp
-                          read bidon alt bidon < /root/ligne.tmp
-                     else 
-                          echo "Please put something in /home/sand/localconfig and restart observe-sqm-stepper.bash."
-                     fi
-                     /bin/echo "Latitude:" $lat ", Longitude:" $lon
-                fi
-           else  echo "GPS mode off"
-           fi
-      fi
-      #  according to unihedron here are the typical waiting time vs sky brightness
+do    #  according to unihedron here are the typical waiting time vs sky brightness
       #  19.83 = 1s
       #  21.97 = 6.9s
       #  22.69 = 12.8s
@@ -262,6 +241,41 @@ do  let count=count+1
       #   add 1 seconds to the waiting time to be sure that no overlap will occur
       let waittime=tim+1
       echo "Required acquistion time:" $waittime
+      let count=count+1
+      if [ $count -eq 10 ]   # set frequency of the recenter operation
+      then findSQM
+           let count=0
+           #
+           #  searching for gps
+           #
+           if [ $gpsf -eq 1 ] 
+           then echo "GPS mode activated"
+                if [ `ls /dev | grep ttyACM0`  ] 
+                then echo "GPS look present." 
+                     globalpos
+                else /bin/echo "GPS not present: using coords. from localconfig"
+                     #
+                     #  reading longitude and latitude from localconfig
+                     #
+                     if [ `grep -c " " /home/sand/localconfig` -ne 0 ]
+                     then /bin/grep Longitude /home/sand/localconfig > /root/ligne.tmp
+                          read bidon lon bidon < /root/ligne.tmp
+                          /bin/grep Latitude /home/sand/localconfig > /root/ligne.tmp
+                          read bidon lat bidon < /root/ligne.tmp
+                          /bin/grep Altitude /home/sand/localconfig > /root/ligne.tmp
+                          read bidon alt bidon < /root/ligne.tmp
+                     else 
+                          echo "Please put something in /home/sand/localconfig and restart observe-sqm-stepper.bash."
+                     fi
+                     /bin/echo "Latitude:" $lat ", Longitude:" $lon
+                fi
+           else  echo "GPS mode off"
+           fi
+      else
+           let dodo=
+           /bin/sleep
+      fi
+
       if [  $nobs != 9999 ] 
       then let i=i+1 #   never ending loop
       fi
