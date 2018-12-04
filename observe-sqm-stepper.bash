@@ -55,7 +55,7 @@ findSQM () {
      let movestep=maxstep/20
      let nstep=maxstep/movestep
      echo "Searching SQM position..." ; date
-     while [ $movestep -gt 8 ]
+     while [ $movestep -gt 3 ]
      do echo "Searching number of trials: " $nstep "Skipping " $movestep "steps" 
         memoi=3000
         n=0
@@ -273,8 +273,8 @@ do    #  according to unihedron here are the typical waiting time vs sky brightn
            else  echo "GPS mode off"
            fi
       else
-           let dodo=
-           /bin/sleep 1
+           let dodo=1
+           /bin/sleep $dodo
       fi
 
       if [  $nobs != 9999 ] 
