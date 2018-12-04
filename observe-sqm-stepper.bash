@@ -282,7 +282,7 @@ do    #  according to unihedron here are the typical waiting time vs sky brightn
       fi
       n=0
       echo "Start"
-      echo "Observation number: " $i
+      echo "Observation number: " $count
       while [ $n -lt ${#filters[*]} ]
       do filter=${filters[$n]}
            let ang=possqm+n*maxstep/5-pos
