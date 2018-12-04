@@ -86,6 +86,7 @@ findSQM () {
            then let pos=pos+maxstep
            fi
            let n=n+1
+          /bin/sleep $waittime  
         done
         echo "Clearest filter position +- "$movestep " = " $possqm
         let ang=possqm-2*movestep-pos
@@ -93,7 +94,7 @@ findSQM () {
         /usr/local/bin/MoveStepFilterWheel.py $ang 0
         let movestep=movestep/2
         let nstep=6
-        /bin/sleep $waittime      
+    
      done
      let possqm=possqm-filteroffset
      echo "Final SQM position:" $possqm ; date
