@@ -143,6 +143,7 @@ movestep=16
 maxstep=2040
 daydelay=20    # add a delay between samplings during daytime to restrict the total amount of data
 filteroffset=0  # to ensure that the SQM fall in the center of the filter
+seuil=11
 #
 # set band list
 # wavelengths 0:= Clear ,1:= Red 2:= Green ,3:= Blue ,4:= Yellow
@@ -245,7 +246,7 @@ do    #  according to unihedron here are the typical waiting time vs sky brightn
       let waittime=tim+1
       echo "Required acquistion time:" $waittime
       let count=count+1
-      if [ $count -eq 2 ]   # set frequency of the recenter operation
+      if [ $count -eq 2 ] && [ $seuil -lt 10 ]  # set frequency of the recenter operation
       then findSQM
            let count=0
            #
