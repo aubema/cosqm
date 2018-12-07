@@ -74,7 +74,7 @@ findIntegration () {
 findSQM () {
      declare -a data
      declare -a posi
-     avgnum=9 # number of scan to average
+     avgnum=16 # number of scan to average
      nscan=1
      averagesqm=0
      deltasqm=0
@@ -91,41 +91,30 @@ findSQM () {
      while [ $nmoy -le $avgnum ] 
      do echo "Searching trial #" $nmoy
 	echo "Searching number of steps: " $nstep "Skipping " $movestep "tics" 
-
-
-
         # scan the filter wheel and store the data into arrays
         n=0
         while [ $n -le $nstep ] 
         do findIntBrightness 
-	   echo $n $pos $meas
 	   posi[$n]=$pos
 	   data[$n]=$meas
            /usr/local/bin/MoveStepFilterWheel.py $movestep 0
            let pos=pos+movestep
            if [ $pos -gt $maxstep ] 
-           then let pos=pos-maxstep+1
+           then let pos=pos-maxstep-1
            fi
            if [ $pos -lt -$maxstep ] 
            then let pos=pos+maxstep+1
            fi
            let n=n+1
         done
-
-
-
-
-        # scan arrays to correct the decreasing trend along the scan
+        # scan arrays to correct the decreasing/increasing trend along the scan
         n=0
         let variation=data[$nstep]-data[0]
         while [ $n -le $nstep ] 
         do let data[$n]=data[$n]-variation*n/nstep
+	   echo $n ${posi[$n]} ${data[$n]}
 	   let n=n+1
         done
-
-
-
-
         # scan arrays to find the minimum 
 	memoi=3000
         n=0
@@ -133,61 +122,30 @@ findSQM () {
         do if [ ${data[$n]} -lt $memoi ]
            then let memoi=data[$n]
                 let possqm=posi[$n]
+		let nsqm=n
                 # echo "Found clearer position = " $possqm
            fi
            let n=n+1
         done
-
-
-
-
 echo "Found clearer position = " $possqm
-	let n=0
-	let ang=-maxstep/5
 	let newstep=maxstep/5/movestep   # move before the preceeding peak
-	/usr/local/bin/MoveStepFilterWheel.py $ang 0
-	let pos=pos+ang
-        if [ $pos -gt $maxstep ] 
-        then let pos=pos-maxstep+1
-        fi
-        if [ $pos -lt -$maxstep ] 
-        then let pos=pos+maxstep+1
-        fi
-
+	let n=nsqm-newstep
         let memoi=0
-        while [ $n -le $newstep ]
-	do findIntBrightness
-	   if [ $meas -gt $memoi ]
-           then let memoi=meas
-                let pospeak=pos
+        while [ $n -le $nsqm ]
+	do if [ ${data[$n]} -gt $memoi ]
+           then let memoi=data[$n]
+                let pospeak=posi[$n]
            fi
-           /usr/local/bin/MoveStepFilterWheel.py $movestep 0
-           let pos=pos+movestep
-           if [ $pos -gt $maxstep ] 
-           then let pos=pos-maxstep+1
-           fi
-           if [ $pos -lt -$maxstep ] 
-           then let pos=pos+maxstep+1
-           fi
-
-           let n=n+1
-	done
-           if [ $pospeak -gt $maxstep ] 
-           then let pospeak=pospeak-maxstep+1
-           fi
-           if [ $pospeak -lt -$maxstep ] 
-           then let pospeak=pospeak+maxstep+1
-           fi
-
+	   let n=n+1
+        done
         # add 1/10 of the total tics to find the center of the filter
-	let possqm=pospeak+maxstep/10
+        let possqm=pospeak+maxstep/10
         if [ $possqm -gt $maxstep ] 
-        then let possqm=possqm-maxstep+1
+        then let possqm=possqm-maxstep-1
         fi
         if [ $possqm -lt -$maxstep ] 
         then let possqm=possqm+maxstep+1
         fi
-
         echo "Clearest filter position +- "$movestep " = " $possqm
 	minim[$nmoy]=$possqm
 	let nmoy=nmoy+1
@@ -214,6 +172,9 @@ echo "Found clearer position = " $possqm
      let possqm=finalsqm/ndelta
      echo "Average SQM position:" $possqm "(was " $averagesqm "before statistical sorting)"i
      echo "Variability:" $deltasqm "initial scans" $avgnum "final scans" $ndelta
+
+
+     exit 1
 }
 # ==================================
 # global positioning system
@@ -262,8 +223,8 @@ maxstep=2048
 # At that moment the sky is relatively uniform and the integration time is short
 # maxim and minim should be written as 100xSkyBrightness (e.g for Sky brightness of 20.3 you 
 # should write 2030
-minim=600 # minimal value of the interval of sky brightness optimal to find SQM position
-maxim=2200 # maximal value of the inverval of sky brightness optimal to find SQM position 
+minim=1100 # minimal value of the interval of sky brightness optimal to find SQM position
+maxim=1200 # maximal value of the inverval of sky brightness optimal to find SQM position 
 #
 # set band list
 # wavelengths 0:= Clear ,1:= Red 2:= Green ,3:= Blue ,4:= Yellow
@@ -358,19 +319,19 @@ do    findIntegration
       do filter=${filters[$n]}
          let ang=possqm+n*maxstep/5-pos
          if [ $ang -gt $maxstep ] 
-         then let ang=ang-maxstep
+         then let ang=ang-maxstep-1
          fi
          if [ $ang -lt -$maxstep ]
-         then let ang=ang+maxstep
+         then let ang=ang+maxstep+1
          fi
          # moving filter wheel
          echo "Moving the filter wheel to filter " $n "("${fname[$n]}")"
          let pos=pos+ang
          if [ $pos -gt $maxstep ] 
-         then let pos=pos-maxstep
+         then let pos=pos-maxstep-1
          fi
          if [ $pos -lt -$maxstep ]
-         then let pos=pos+maxstep
+         then let pos=pos+maxstep+1
          fi
          echo "Moving to position " $pos
          /usr/local/bin/MoveStepFilterWheel.py $ang 0  
