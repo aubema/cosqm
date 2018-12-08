@@ -75,7 +75,7 @@ findSQM () {
      declare -a data
      declare -a posi
      declare -a filterpos
-     avgnum=19 # number of scan to average
+     avgnum=5 # number of scan to average
      nscan=1
      averagesqm=0
      deltasqm=0
@@ -107,9 +107,9 @@ findSQM () {
         /usr/local/bin/MoveStepFilterWheel.py $ang 0
 	let pos=pos+ang
         n=0
-        let variation=data[$nstep]-data[0]
+        let variation=data[$nstep]-data[1]
         while [ $n -le $nstep ] 
-        do let data[$n]=data[$n]-variation*n/nstep
+	do let data[$n]=data[$n]-variation*n/nstep
 	   echo $n ${posi[$n]} ${data[$n]}
 	   let n=n+1
         done
@@ -144,7 +144,6 @@ echo "Found clearer position = " $possqm
         if [ $possqm -lt -$maxstep ] 
         then let possqm=possqm+maxstep+1
         fi
-        echo "Clearest filter position +- "$movestep " = " $possqm
 	minim[$nmoy]=$possqm
 	let nmoy=nmoy+1
         echo "SQM position:" $possqm "scan no. " $nscan
@@ -168,8 +167,8 @@ echo "Found clearer position = " $possqm
 	 fi
      done
      let possqm=finalsqm/ndelta
-     echo "Average SQM position:" $possqm "(was " $averagesqm "before statistical sorting)"i
-     echo "Variability:" $deltasqm "initial scans" $avgnum "final scans" $ndelta
+     echo "Averaged SQM position:" $possqm "(was " $averagesqm "before statistical sorting)"i
+     echo "Variability=" $deltasqm " initial scans=" $avgnum " final scans=" $ndelta
      # set filters position array
      let filterpos[0]=possqm
      let filterpos[1]=possqm+maxstep/5
@@ -189,7 +188,6 @@ echo "Found clearer position = " $possqm
      then let filterpos[4]=filterpos[4]-maxstep
      fi
      echo "filter positions:" ${filterpos[*]}
-     exit 1
 }
 # ==================================
 # global positioning system
@@ -238,7 +236,7 @@ maxstep=2048
 # At that moment the sky is relatively uniform and the integration time is short
 # maxim and minim should be written as 100xSkyBrightness (e.g for Sky brightness of 20.3 you 
 # should write 2030
-minim=-1 # minimal value of the interval of sky brightness optimal to find SQM position
+minim=1100 # minimal value of the interval of sky brightness optimal to find SQM position
 maxim=1200 # maximal value of the inverval of sky brightness optimal to find SQM position 
 #
 # set band list
@@ -298,7 +296,7 @@ do    findIntegration
       then findSQM
 	   let scandone=1
            # wait 10 minutes
-           echo "Wait 10 min until new filter scan"
+           echo "Wait 10 min"
            sleep 600
       fi
       #
@@ -340,21 +338,9 @@ then
       while [ $n -lt ${#filters[*]} ]
       do filter=${filters[$n]}
          let ang=filterpos[$n]-pos
-         if [ $ang -gt $maxstep ] 
-         then let ang=ang-maxstep-1
-         fi
-         if [ $ang -lt -$maxstep ]
-         then let ang=ang+maxstep+1
-         fi
          # moving filter wheel
          echo "Moving the filter wheel to filter " $n "("${fname[$n]}")"
          let pos=pos+ang
-         if [ $pos -gt $maxstep ] 
-         then let pos=pos-maxstep-1
-         fi
-         if [ $pos -lt -$maxstep ]
-         then let pos=pos+maxstep+1
-         fi
          echo "Moving to position " $pos
          /usr/local/bin/MoveStepFilterWheel.py $ang 0  
          echo "Reading sqm, Filter: " $n
