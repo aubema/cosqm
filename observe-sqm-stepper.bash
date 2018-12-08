@@ -74,7 +74,8 @@ findIntegration () {
 findSQM () {
      declare -a data
      declare -a posi
-     avgnum=16 # number of scan to average
+     declare -a filterpos
+     avgnum=19 # number of scan to average
      nscan=1
      averagesqm=0
      deltasqm=0
@@ -99,15 +100,12 @@ findSQM () {
 	   data[$n]=$meas
            /usr/local/bin/MoveStepFilterWheel.py $movestep 0
            let pos=pos+movestep
-           if [ $pos -gt $maxstep ] 
-           then let pos=pos-maxstep-1
-           fi
-           if [ $pos -lt -$maxstep ] 
-           then let pos=pos+maxstep+1
-           fi
            let n=n+1
         done
-        # scan arrays to correct the decreasing/increasing trend along the scan
+	# return to position 0
+	let ang=-pos
+        /usr/local/bin/MoveStepFilterWheel.py $ang 0
+	let pos=pos+ang
         n=0
         let variation=data[$nstep]-data[0]
         while [ $n -le $nstep ] 
@@ -172,8 +170,25 @@ echo "Found clearer position = " $possqm
      let possqm=finalsqm/ndelta
      echo "Average SQM position:" $possqm "(was " $averagesqm "before statistical sorting)"i
      echo "Variability:" $deltasqm "initial scans" $avgnum "final scans" $ndelta
-
-
+     # set filters position array
+     let filterpos[0]=possqm
+     let filterpos[1]=possqm+maxstep/5
+     if [ ${filterpos[1]} -gt $maxstep ]
+     then let filterpos[1]=filterpos[1]-maxstep
+     fi
+     let filterpos[2]=possqm+2*maxstep/5
+     if [ ${filterpos[2]} -gt $maxstep ]
+     then let filterpos[2]=filterpos[2]-maxstep
+     fi
+     let filterpos[3]=possqm+3*maxstep/5
+     if [ ${filterpos[3]} -gt $maxstep ]
+     then let filterpos[3]=filterpos[3]-maxstep
+     fi
+     let filterpos[4]=possqm+4*maxstep/5
+     if [ ${filterpos[4]} -gt $maxstep ]
+     then let filterpos[4]=filterpos[4]-maxstep
+     fi
+     echo "filter positions:" ${filterpos[*]}
      exit 1
 }
 # ==================================
@@ -223,7 +238,7 @@ maxstep=2048
 # At that moment the sky is relatively uniform and the integration time is short
 # maxim and minim should be written as 100xSkyBrightness (e.g for Sky brightness of 20.3 you 
 # should write 2030
-minim=1100 # minimal value of the interval of sky brightness optimal to find SQM position
+minim=-1 # minimal value of the interval of sky brightness optimal to find SQM position
 maxim=1200 # maximal value of the inverval of sky brightness optimal to find SQM position 
 #
 # set band list
@@ -238,6 +253,7 @@ read bidon sqmip bidon < /root/toto
 # one complete rotation in half step mode (mode 1) is maxstep=4080 i.e. 1 step = 0.087890625 deg
 # if you use the full step mode (mode 0) then maxstep=2040 is the number of steps i.e. 1 step = 0.17578125
 pos=0
+scandone=0
 #
 #  searching for gps
 #
@@ -275,11 +291,12 @@ do    findIntegration
       findIntBrightness
       while [ $meas -le $minim ]    # too bright it is daytime
       do findIntBrightness
-	      echo "Wait 15 min until twilight ("$minim"<(SBx100)<"$maxim")"
-	 sleep 900
+	      echo "Brightness = " $meas "Wait 5 min until twilight ("$minim"<(SBx100)<"$maxim")"
+	 sleep 300
       done
       if [ $meas -lt $maxim ]
       then findSQM
+	   let scandone=1
            # wait 10 minutes
            echo "Wait 10 min until new filter scan"
            sleep 600
@@ -310,14 +327,19 @@ do    findIntegration
            fi
       else  echo "GPS mode off"
       fi
+if [ $scandone -eq 1 ]
+then
+
+
       if [  $nobs != 9999 ] 
       then let i=i+1 #   never ending loop
       fi
       n=0
       echo "Start"
+
       while [ $n -lt ${#filters[*]} ]
       do filter=${filters[$n]}
-         let ang=possqm+n*maxstep/5-pos
+         let ang=filterpos[$n]-pos
          if [ $ang -gt $maxstep ] 
          then let ang=ang-maxstep-1
          fi
@@ -371,6 +393,10 @@ do    findIntegration
       then /bin/mkdir /var/www/html/data/$y/$mo
       fi
       echo $time $lat $lon $alt $temp ${sqmreads[0]} ${sqmreads[1]} ${sqmreads[2]} ${sqmreads[3]} ${sqmreads[4]} ${sbcals[0]} ${sbcals[1]} ${sbcals[2]} ${sbcals[3]} ${sbcals[4]}>> /var/www/html/data/$y/$mo/$nomfich
+
+
+fi
+
 done
 echo "End of observe-sqm-stepper.bash"
 exit 0
