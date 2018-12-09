@@ -75,7 +75,6 @@ findSQM () {
      declare -a data
      declare -a posi
      declare -a filterpos
-     avgnum=5 # number of scan to average
      nscan=1
      averagesqm=0
      deltasqm=0
@@ -232,12 +231,15 @@ nobs=9999  		# number of times measured if 9999 then infinity
 waittime=10             # at a mag of about 24 the integration time is around 60s
 movestep=16
 maxstep=2048
-# We search for the SQM position of the filter wheel during twilight (around SB=12)
+avgnum=4                # number of filter wheel scan to average to find a more 
+                        # precise position for the SQM
+nmeas=500               # number of measurements before rescanning the filter wheel
+# After startup of the CoSQM, We search for the SQM position of the filter wheel 
+# during twilight (around SB=12)
 # At that moment the sky is relatively uniform and the integration time is short
-# maxim and minim should be written as 100xSkyBrightness (e.g for Sky brightness of 20.3 you 
-# should write 2030
+# minim should be written as 100xSkyBrightness (e.g for Sky brightness of 12.0 you 
+# should write 1200
 minim=1100 # minimal value of the interval of sky brightness optimal to find SQM position
-maxim=1200 # maximal value of the inverval of sky brightness optimal to find SQM position 
 #
 # set band list
 # wavelengths 0:= Clear ,1:= Red 2:= Green ,3:= Blue ,4:= Yellow
@@ -247,11 +249,13 @@ calib=( 0.0 0.0 0.0 0.0 0.0 )
 # calib is the magnitude offset for each filter
 fname=(Clear Red Green Blue Yellow)
 grep sqmIP /home/sand/localconfig > /root/toto # sqmIP est le mot cle cherche dans le localconfig 
+      echo "Required acquistion time:" $waittime
 read bidon sqmip bidon < /root/toto
 # one complete rotation in half step mode (mode 1) is maxstep=4080 i.e. 1 step = 0.087890625 deg
 # if you use the full step mode (mode 0) then maxstep=2040 is the number of steps i.e. 1 step = 0.17578125
 pos=0
 scandone=0
+count=0
 #
 #  searching for gps
 #
@@ -271,7 +275,7 @@ then echo "GPS mode activated"
                read bidon lat bidon < /root/ligne.tmp
                /bin/grep Altitude /home/sand/localconfig > /root/ligne.tmp
                read bidon alt bidon < /root/ligne.tmp
-          el1:se echo "Please put something in /home/sand/localconfig and restart observe-sqm-stepper.bash."
+          else echo "Please put something in /home/sand/localconfig and restart observe-sqm-stepper.bash."
           fi
           /bin/echo "Latitude:" $lat ", Longitude:" $lon
      fi
@@ -285,19 +289,15 @@ read bidon NAME bidon < /root/ligne.tmp
 i=0
 while [ $i -lt $nobs ]
 do    findIntegration
-      echo "Required acquistion time:" $waittime
       findIntBrightness
       while [ $meas -le $minim ]    # too bright it is daytime
       do findIntBrightness
 	      echo "Brightness = " $meas "Wait 5 min until twilight ("$minim"<(SBx100)<"$maxim")"
 	 sleep 300
       done
-      if [ $meas -lt $maxim ]
+      if [ $scandone -eq 0 ]
       then findSQM
-	   let scandone=1
-           # wait 10 minutes
-           echo "Wait 10 min"
-           sleep 600
+	   scandone=1
       fi
       #
       #  searching for gps
@@ -325,10 +325,14 @@ do    findIntegration
            fi
       else  echo "GPS mode off"
       fi
+      echo "scandone=" $scandone
 if [ $scandone -eq 1 ]
-then
-
-
+then  echo "lecture"
+      let count=count+1
+      if [ $count -eq $nmeas ]  # after nmeas measurements rescan the filter wheel
+      then count=0
+	   scandone=0
+      fi
       if [  $nobs != 9999 ] 
       then let i=i+1 #   never ending loop
       fi
@@ -346,7 +350,8 @@ then
          echo "Reading sqm, Filter: " $n
          echo "Waiting time:" $waittime
          /bin/sleep $waittime         # let enough time to be sure that the reading comes from this filter
-         /usr/local/bin/sqmleread.pl $sqmip 10001 1 > /root/sqmdata.tmp
+         /bin/sleep 0.5
+	 /usr/local/bin/sqmleread.pl $sqmip 10001 1 > /root/sqmdata.tmp
          echo "End of reading"      
          read sqm < /root/sqmdata.tmp
          echo $sqm | sed 's/,/ /g' | sed 's/m//g' > /root/toto.tmp
@@ -378,6 +383,9 @@ then
       if [ ! -d /var/www/html/data/$y/$mo ]
       then /bin/mkdir /var/www/html/data/$y/$mo
       fi
+      let idle=120-5*waittime  # one measurement every 2 min
+      if [ $idle -lt 0 ] ; then let idle=0; fi
+      /bin/sleep $idle
       echo $time $lat $lon $alt $temp ${sqmreads[0]} ${sqmreads[1]} ${sqmreads[2]} ${sqmreads[3]} ${sqmreads[4]} ${sbcals[0]} ${sbcals[1]} ${sbcals[2]} ${sbcals[3]} ${sbcals[4]}>> /var/www/html/data/$y/$mo/$nomfich
 
 
