@@ -74,7 +74,6 @@ findIntegration () {
 findSQM () {
      declare -a data
      declare -a posi
-     declare -a filterpos
      nscan=1
      averagesqm=0
      deltasqm=0
@@ -101,10 +100,12 @@ findSQM () {
            let pos=pos+movestep
            let n=n+1
         done
-	# return to position 0
-	let ang=-pos
+        destina=0
+        echo  "Moving to 0"
+        let ang=destina-pos
+        let pos=pos+ang
         /usr/local/bin/MoveStepFilterWheel.py $ang 0
-	let pos=pos+ang
+        echo "Position= " $pos
         n=0
         let variation=data[$nstep]-data[1]
         while [ $n -le $nstep ] 
@@ -154,6 +155,10 @@ echo "Found clearer position = " $possqm
      do  let diffsqm=(i-averagesqm)
 	 diffsqm=`echo $diffsqm | tr -d -`  # take the absolute value 
          let deltasqm=deltasqm+diffsqm
+	# go to clear filter
+	let ang=-pos
+        /usr/local/bin/MoveStepFilterWheel.py $ang 0
+	let pos=pos+ang
      done
      let deltasqm=deltasqm/avgnum
 # remove value too far from the average
@@ -166,8 +171,70 @@ echo "Found clearer position = " $possqm
 	 fi
      done
      let possqm=finalsqm/ndelta
-     echo "Averaged SQM position:" $possqm "(was " $averagesqm "before statistical sorting)"i
+     echo "Averaged SQM position:" $possqm "(was " $averagesqm "before statistical sorting)"
      echo "Variability=" $deltasqm " initial scans=" $avgnum " final scans=" $ndelta
+     # set filters position array
+     let filterpos[0]=possqm
+     let filterpos[1]=possqm+maxstep/5
+     if [ ${filterpos[1]} -gt $maxstep ]
+     then let filterpos[1]=filterpos[1]-maxstep
+     fi
+     let filterpos[2]=possqm+2*maxstep/5
+     if [ ${filterpos[2]} -gt $maxstep ]
+     then let filterpos[2]=filterpos[2]-maxstep
+     fi
+     let filterpos[3]=possqm+3*maxstep/5
+     if [ ${filterpos[3]} -gt $maxstep ]
+     then let filterpos[3]=filterpos[3]-maxstep
+     fi
+     let filterpos[4]=possqm+4*maxstep/5
+     if [ ${filterpos[4]} -gt $maxstep ]
+     then let filterpos[4]=filterpos[4]-maxstep
+     fi
+     # position for the recentering
+     let filterpos[5]=possqm-maxstep/10
+     if [ ${filterpos[5]} -lt 0 ]
+     then let filterpos[5]=filterpos[5]+maxstep
+     fi
+
+     echo "filter positions:" ${filterpos[*]}
+     # go to clear filter
+     n=0
+     destina=${filterpos[$n]}
+     echo  "Moving to clear filter"
+     let ang=destina-pos
+     let pos=pos+ang
+     /usr/local/bin/MoveStepFilterWheel.py $ang 0
+}
+#######
+# recenter SQM
+recenter () {
+     destina=possqm-maxstep/6
+     if [ $destina -lt 0 ]
+     then let destina=destina+maxstep
+     fi
+     let ang=destina-pos
+     let newstep=maxstep/10/movestep   # move before the preceeding peak
+     let n=0
+     let memoi=0
+     while [ $n -le $newstep ]
+     do /usr/local/bin/MoveStepFilterWheel.py $movestep 0
+	findIntegration
+	findIntBrightness
+	if [ $meas -gt $memoi ]
+        then let memoi=meas
+             let pospeak=pos
+        fi
+        let n=n+1
+     done
+     # add 1/10 of the total tics to find the center of the filter
+     let possqm=pospeak+maxstep/10
+     if [ $possqm -gt $maxstep ] 
+     then let possqm=possqm-maxstep-1
+     fi
+     if [ $possqm -lt -$maxstep ] 
+     then let possqm=possqm+maxstep+1
+     fi
      # set filters position array
      let filterpos[0]=possqm
      let filterpos[1]=possqm+maxstep/5
@@ -233,19 +300,20 @@ movestep=16
 maxstep=2048
 avgnum=4                # number of filter wheel scan to average to find a more 
                         # precise position for the SQM
-nmeas=500               # number of measurements before rescanning the filter wheel
+nmeas=15                # lowest number of measurements before a possible new scan of the filter wheel
 # After startup of the CoSQM, We search for the SQM position of the filter wheel 
 # during twilight (around SB=12)
 # At that moment the sky is relatively uniform and the integration time is short
-# minim should be written as 100xSkyBrightness (e.g for Sky brightness of 12.0 you 
-# should write 1200
-minim=1100 # minimal value of the interval of sky brightness optimal to find SQM position
+# minim should be written as 100xSkyBrightness (e.g for Sky brightness of 11.0 you 
+# should write 1100
+minim=600 # minimal value of the interval of sky brightness optimal to find SQM position
 #
 # set band list
 # wavelengths 0:= Clear ,1:= Red 2:= Green ,3:= Blue ,4:= Yellow
 #
 filters=( 0 1 2 3 4 )
 calib=( 0.0 0.0 0.0 0.0 0.0 )
+filterpos=( 0 0 0 0 0 0 )
 # calib is the magnitude offset for each filter
 fname=(Clear Red Green Blue Yellow)
 grep sqmIP /home/sand/localconfig > /root/toto # sqmIP est le mot cle cherche dans le localconfig 
@@ -292,7 +360,7 @@ do    findIntegration
       findIntBrightness
       while [ $meas -le $minim ]    # too bright it is daytime
       do findIntBrightness
-	      echo "Brightness = " $meas "Wait 5 min until twilight ("$minim"<(SBx100)<"$maxim")"
+	      echo "Brightness = " $meas "Wait 5 min until twilight ("$minim"<(SBx100))"
 	 sleep 300
       done
       if [ $scandone -eq 0 ]
@@ -329,9 +397,13 @@ do    findIntegration
 if [ $scandone -eq 1 ]
 then  echo "lecture"
       let count=count+1
-      if [ $count -eq $nmeas ]  # after nmeas measurements rescan the filter wheel
-      then count=0
-	   scandone=0
+      findIntBrightness
+      if [ $count -gt $nmeas ]
+      then if [ $meas -lt $minim ]  # reset the filter wheel scan flag for the next day
+           then count=0
+	        scandone=0
+	   else recenter
+           fi
       fi
       if [  $nobs != 9999 ] 
       then let i=i+1 #   never ending loop
@@ -341,11 +413,12 @@ then  echo "lecture"
 
       while [ $n -lt ${#filters[*]} ]
       do filter=${filters[$n]}
-         let ang=filterpos[$n]-pos
+	 destina=${filterpos[$n]}
+         let ang=destina-pos
          # moving filter wheel
          echo "Moving the filter wheel to filter " $n "("${fname[$n]}")"
          let pos=pos+ang
-         echo "Moving to position " $pos
+         echo "Moving to position " $pos $ang $destina $n
          /usr/local/bin/MoveStepFilterWheel.py $ang 0  
          echo "Reading sqm, Filter: " $n
          echo "Waiting time:" $waittime
@@ -383,12 +456,11 @@ then  echo "lecture"
       if [ ! -d /var/www/html/data/$y/$mo ]
       then /bin/mkdir /var/www/html/data/$y/$mo
       fi
-      let idle=120-5*waittime  # one measurement every 2 min
-      if [ $idle -lt 0 ] ; then let idle=0; fi
-      /bin/sleep $idle
       echo $time $lat $lon $alt $temp ${sqmreads[0]} ${sqmreads[1]} ${sqmreads[2]} ${sqmreads[3]} ${sqmreads[4]} ${sbcals[0]} ${sbcals[1]} ${sbcals[2]} ${sbcals[3]} ${sbcals[4]}>> /var/www/html/data/$y/$mo/$nomfich
-
-
+      let idle=120-5*tim-43  # one measurement every 2 min
+      if [ $idle -lt 0 ] ; then let idle=0; fi
+      echo "Wait " $idle "s before next reading."
+      /bin/sleep $idle
 fi
 
 done
