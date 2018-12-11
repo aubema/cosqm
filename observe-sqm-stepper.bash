@@ -89,7 +89,7 @@ findSQM () {
      echo "Searching SQM position..."
      while [ $nmoy -le $avgnum ] 
      do echo "Searching trial #" $nmoy
-	echo "Searching number of steps: " $nstep "Skipping " $movestep "tics" 
+	# echo "Searching number of steps: " $nstep "Skipping " $movestep "tics" 
         # scan the filter wheel and store the data into arrays
         n=0
         while [ $n -le $nstep ] 
@@ -101,11 +101,11 @@ findSQM () {
            let n=n+1
         done
         destina=0
-        echo  "Moving to 0"
+        # echo  "Moving to 0"
         let ang=destina-pos
         let pos=pos+ang
         /usr/local/bin/MoveStepFilterWheel.py $ang 0
-        echo "Position= " $pos
+        # echo "Position= " $pos
         n=0
         let variation=data[$nstep]-data[1]
         while [ $n -le $nstep ] 
@@ -125,7 +125,7 @@ findSQM () {
            fi
            let n=n+1
         done
-echo "Found clearer position = " $possqm
+        # echo "Found clearer position = " $possqm
 	let newstep=maxstep/5/movestep   # move before the preceeding peak
 	let n=nsqm-newstep
         let memoi=0
@@ -172,7 +172,7 @@ echo "Found clearer position = " $possqm
      done
      let possqm=finalsqm/ndelta
      echo "Averaged SQM position:" $possqm "(was " $averagesqm "before statistical sorting)"
-     echo "Variability=" $deltasqm " initial scans=" $avgnum " final scans=" $ndelta
+#     echo "Variability=" $deltasqm " initial scans=" $avgnum " final scans=" $ndelta
      # set filters position array
      let filterpos[0]=possqm
      let filterpos[1]=possqm+maxstep/5
@@ -191,12 +191,6 @@ echo "Found clearer position = " $possqm
      if [ ${filterpos[4]} -gt $maxstep ]
      then let filterpos[4]=filterpos[4]-maxstep
      fi
-     # position for the recentering
-     let filterpos[5]=possqm-maxstep/10
-     if [ ${filterpos[5]} -lt 0 ]
-     then let filterpos[5]=filterpos[5]+maxstep
-     fi
-
      echo "filter positions:" ${filterpos[*]}
      # go to clear filter
      n=0
@@ -209,7 +203,8 @@ echo "Found clearer position = " $possqm
 #######
 # recenter SQM
 recenter () {
-     destina=possqm-maxstep/6
+     findIntegration
+     let destina=possqm-maxstep/6
      if [ $destina -lt 0 ]
      then let destina=destina+maxstep
      fi
@@ -219,7 +214,6 @@ recenter () {
      let memoi=0
      while [ $n -le $newstep ]
      do /usr/local/bin/MoveStepFilterWheel.py $movestep 0
-	findIntegration
 	findIntBrightness
 	if [ $meas -gt $memoi ]
         then let memoi=meas
@@ -253,7 +247,7 @@ recenter () {
      if [ ${filterpos[4]} -gt $maxstep ]
      then let filterpos[4]=filterpos[4]-maxstep
      fi
-     echo "filter positions:" ${filterpos[*]}
+     echo "Filter positions:" ${filterpos[*]}
 }
 # ==================================
 # global positioning system
@@ -273,7 +267,7 @@ globalpos () {
      read bidon alt bidon1 < /root/bidon1.tmp
      grep activated /root/bidon.tmp > /root/bidon1.tmp 
      read bidon gpsdate bidon1 < /root/bidon1.tmp
-     /bin/echo "GPS is connected, reading lat lon data. Longitude:" $lon
+     # /bin/echo "GPS is connected, reading lat lon data. Longitude:" $lon
      if [ -z "${lon}" ]
      then let lon=0
           let lat=0
@@ -300,7 +294,7 @@ movestep=16
 maxstep=2048
 avgnum=4                # number of filter wheel scan to average to find a more 
                         # precise position for the SQM
-nmeas=15                # lowest number of measurements before a possible new scan of the filter wheel
+nmeas=40                # lowest number of measurements before a possible new scan of the filter wheel
 # After startup of the CoSQM, We search for the SQM position of the filter wheel 
 # during twilight (around SB=12)
 # At that moment the sky is relatively uniform and the integration time is short
@@ -313,17 +307,17 @@ minim=600 # minimal value of the interval of sky brightness optimal to find SQM 
 #
 filters=( 0 1 2 3 4 )
 calib=( 0.0 0.0 0.0 0.0 0.0 )
-filterpos=( 0 0 0 0 0 0 )
+filterpos=( 0 0 0 0 0 )
 # calib is the magnitude offset for each filter
 fname=(Clear Red Green Blue Yellow)
 grep sqmIP /home/sand/localconfig > /root/toto # sqmIP est le mot cle cherche dans le localconfig 
-      echo "Required acquistion time:" $waittime
+      # echo "Required acquistion time:" $waittime
 read bidon sqmip bidon < /root/toto
 # one complete rotation in half step mode (mode 1) is maxstep=4080 i.e. 1 step = 0.087890625 deg
 # if you use the full step mode (mode 0) then maxstep=2040 is the number of steps i.e. 1 step = 0.17578125
 pos=0
 scandone=0
-count=0
+count=1
 #
 #  searching for gps
 #
@@ -345,7 +339,7 @@ then echo "GPS mode activated"
                read bidon alt bidon < /root/ligne.tmp
           else echo "Please put something in /home/sand/localconfig and restart observe-sqm-stepper.bash."
           fi
-          /bin/echo "Latitude:" $lat ", Longitude:" $lon
+          # /bin/echo "Latitude:" $lat ", Longitude:" $lon
      fi
 else  echo "GPS mode off"
 fi
@@ -389,19 +383,19 @@ do    findIntegration
                 else 
                      echo "Please put something in /home/sand/localconfig and restart observe-sqm-stepper.bash."
                 fi
-                /bin/echo "Latitude:" $lat ", Longitude:" $lon
+                # /bin/echo "Latitude:" $lat ", Longitude:" $lon
            fi
       else  echo "GPS mode off"
       fi
-      echo "scandone=" $scandone
+      # echo "scandone=" $scandone
 if [ $scandone -eq 1 ]
 then  echo "lecture"
       let count=count+1
       findIntBrightness
-      if [ $count -gt $nmeas ]
-      then if [ $meas -lt $minim ]  # reset the filter wheel scan flag for the next day
-           then count=0
-	        scandone=0
+      if [ $count -eq $nmeas ]
+      then count=1
+	   if [ $meas -lt $minim ]  # reset the filter wheel scan flag for the next day
+           then scandone=0
 	   else recenter
            fi
       fi
@@ -409,23 +403,23 @@ then  echo "lecture"
       then let i=i+1 #   never ending loop
       fi
       n=0
-      echo "Start"
-
+      echo "Start measurement #" $count"/"$nmeas
       while [ $n -lt ${#filters[*]} ]
       do filter=${filters[$n]}
 	 destina=${filterpos[$n]}
-         let ang=destina-pos
+         let ang=destina-pos-4  # 4 is a correction for an error in the motor movement. 
+	 # Apparently each movement is 4 steps higher. Do not know the reason for that
          # moving filter wheel
          echo "Moving the filter wheel to filter " $n "("${fname[$n]}")"
          let pos=pos+ang
          echo "Moving to position " $pos $ang $destina $n
          /usr/local/bin/MoveStepFilterWheel.py $ang 0  
          echo "Reading sqm, Filter: " $n
-         echo "Waiting time:" $waittime
+         # echo "Waiting time:" $waittime
          /bin/sleep $waittime         # let enough time to be sure that the reading comes from this filter
          /bin/sleep 0.5
 	 /usr/local/bin/sqmleread.pl $sqmip 10001 1 > /root/sqmdata.tmp
-         echo "End of reading"      
+         # echo "End of reading"      
          read sqm < /root/sqmdata.tmp
          echo $sqm | sed 's/,/ /g' | sed 's/m//g' > /root/toto.tmp
          read bidon sb bidon < /root/toto.tmp
