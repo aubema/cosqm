@@ -92,7 +92,7 @@ def steps_8(value):
     if(value<0):
         for i in range (0,abs(value)):
             step_8(pas)
-            time.sleep(0.005)
+            time.sleep(0.1)
             pas+=1
             if(pas>=9):
                pas=1;
@@ -100,7 +100,7 @@ def steps_8(value):
     else:
         for i in range (0,abs(value)):
             step_8(pas)
-            time.sleep(0.005)
+            time.sleep(0.1)
             if(pas==1):
                pas=9;
             pas-=1
@@ -111,7 +111,7 @@ def steps_4(value):
     if(value<0):
         for i in range (0,abs(value)):
             step_4(pas)
-            time.sleep(0.005)
+            time.sleep(0.1)
             pas+=1
             if(pas>=5):
                pas=1;
@@ -119,7 +119,7 @@ def steps_4(value):
     else:
         for i in range (0,abs(value)):
             step_4(pas)
-            time.sleep(0.005)
+            time.sleep(0.1)
             if(pas==1):
                pas=5;
             pas-=1
