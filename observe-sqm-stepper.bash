@@ -204,7 +204,7 @@ findSQM () {
 # recenter SQM
 recenter () {
      findIntegration
-     let destina=possqm-maxstep/6
+     let destina=possqm-maxstep/5
      if [ $destina -lt 0 ]
      then let destina=destina+maxstep
      fi
@@ -215,10 +215,12 @@ recenter () {
      while [ $n -le $newstep ]
      do /usr/local/bin/MoveStepFilterWheel.py $movestep 0
 	findIntBrightness
+	echo $n $pos $meas
 	if [ $meas -gt $memoi ]
         then let memoi=meas
              let pospeak=pos
         fi
+	let pos=pos+movestep
         let n=n+1
      done
      # add 1/10 of the total tics to find the center of the filter
@@ -294,7 +296,7 @@ movestep=16
 maxstep=2048
 avgnum=4                # number of filter wheel scan to average to find a more 
                         # precise position for the SQM
-nmeas=40                # lowest number of measurements before a possible new scan of the filter wheel
+nmeas=10                # lowest number of measurements before a possible new scan of the filter wheel
 # After startup of the CoSQM, We search for the SQM position of the filter wheel 
 # during twilight (around SB=12)
 # At that moment the sky is relatively uniform and the integration time is short
@@ -377,6 +379,7 @@ do    findIntegration
                 then /bin/grep Longitude /home/sand/localconfig > /root/ligne.tmp
                      read bidon lon bidon < /root/ligne.tmp
                      /bin/grep Latitude /home/sand/localconfig > /root/ligne.tmp
+		0
                      read bidon lat bidon < /root/ligne.tmp
                      /bin/grep Altitude /home/sand/localconfig > /root/ligne.tmp
                      read bidon alt bidon < /root/ligne.tmp
@@ -389,8 +392,7 @@ do    findIntegration
       fi
       # echo "scandone=" $scandone
 if [ $scandone -eq 1 ]
-then  echo "lecture"
-      let count=count+1
+then  let count=count+1
       findIntBrightness
       if [ $count -eq $nmeas ]
       then count=1
@@ -407,12 +409,12 @@ then  echo "lecture"
       while [ $n -lt ${#filters[*]} ]
       do filter=${filters[$n]}
 	 destina=${filterpos[$n]}
-         let ang=destina-pos-4  # 4 is a correction for an error in the motor movement. 
-	 # Apparently each movement is 4 steps higher. Do not know the reason for that
+         let ang=destina-pos-0  # 5 is a correction for an error in the motor movement. 
+	 # Apparently each movement is 5 steps higher. Do not know the reason for that
          # moving filter wheel
          echo "Moving the filter wheel to filter " $n "("${fname[$n]}")"
          let pos=pos+ang
-         echo "Moving to position " $pos $ang $destina $n
+         # echo "Moving to position " $pos $ang $destina $n
          /usr/local/bin/MoveStepFilterWheel.py $ang 0  
          echo "Reading sqm, Filter: " $n
          # echo "Waiting time:" $waittime
