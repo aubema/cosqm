@@ -309,13 +309,13 @@ waittime=10             # at a mag of about 24 the integration time is around 60
 maxstep=2048
 avgnum=4                # number of filter wheel scan to average to find a more 
                         # precise position for the SQM
-nmeas=50                # lowest number of measurements before a possible new scan of the filter wheel
+nmeas=5                # lowest number of measurements before a possible new scan of the filter wheel
 # After startup of the CoSQM, We search for the SQM position of the filter wheel 
 # during twilight (around SB=12)
 # At that moment the sky is relatively uniform and the integration time is short
 # minim should be written as 100xSkyBrightness (e.g for Sky brightness of 11.0 you 
 # should write 1100
-minim=600 # minimal value of the interval of sky brightness optimal to find SQM position
+minim=1000 # minimal value of the interval of sky brightness optimal to find SQM position
 #
 # set band list
 # wavelengths 0:= Clear ,1:= Red 2:= Green ,3:= Blue ,4:= Yellow
