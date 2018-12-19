@@ -202,6 +202,7 @@ findSQM () {
 #######
 # recenter SQM
 recenter () {
+     npeak=0
      findIntegration
      let destina=possqm-maxstep/10-2*movestep
 
