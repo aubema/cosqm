@@ -54,6 +54,7 @@ findIntegration () {
      #  24.41 = 48.2s 
      #  24.60 = 54.1s
      #  24.76 = 60s
+     #  The integration time can be calculated with t=2.37E-25*SB**18.98
      /usr/local/bin/sqmleread.pl $sqmip 10001 1 > /root/sqmdata.tmp
      read sqm < /root/sqmdata.tmp
      echo $sqm | sed 's/,/ /g' | sed 's/s//g' | sed 's/C/ C/g' > /root/toto.tmp
@@ -65,7 +66,6 @@ findIntegration () {
      echo $tim | sed 's/000//g'  > /root/toto.tmp
      read tim toto < /root/toto.tmp
      waittime=$tim"."$timd
-     echo "Required acquistion time:" $waittime
 }
 
 # =============================
@@ -203,8 +203,7 @@ findSQM () {
 # recenter SQM
 recenter () {
      findIntegration
-     # let destina=possqm-maxstep/5
-     let destina=possqm-maxstep/10-3*movestep
+     let destina=possqm-maxstep/10-2*movestep
 
 echo $destina $possqm $maxstep $movestep $pos
 
@@ -214,7 +213,7 @@ echo $destina $possqm $maxstep $movestep $pos
      let ang=destina-pos
      /usr/local/bin/MoveStepFilterWheel.py $ang 0
      # let newstep=maxstep/5/movestep   # move before the preceeding peak
-     let newstep=2*3+2
+     let newstep=2*3-1
      let pos=pos+ang
 
      let n=0
@@ -226,6 +225,7 @@ echo $destina $possqm $maxstep $movestep $pos
 	if [ $meas -gt $memoi ]
         then let memoi=meas
              let pospeak=pos
+	     let npeak=n
         fi
 	let pos=pos+movestep
         let n=n+1
@@ -264,6 +264,10 @@ echo $destina $possqm $maxstep $movestep $pos
      let ang=destina-pos
      let pos=pos+ang
      /usr/local/bin/MoveStepFilterWheel.py $ang 0
+     if [ $npeak -eq $newstep ]
+     then echo "Not sure we found the peak. Better to rescan all the filter wheel."
+	  findSQM
+     fi
 }
 # ==================================
 # global positioning system
@@ -309,7 +313,8 @@ waittime=10             # at a mag of about 24 the integration time is around 60
 maxstep=2048
 avgnum=4                # number of filter wheel scan to average to find a more 
                         # precise position for the SQM
-nmeas=5                # lowest number of measurements before a possible new scan of the filter wheel
+nmeas=1                 # lowest number of measurements before a possible new scan of the filter wheel
+maxInt=20               # maximal allowed integration time
 # After startup of the CoSQM, We search for the SQM position of the filter wheel 
 # during twilight (around SB=12)
 # At that moment the sky is relatively uniform and the integration time is short
@@ -332,42 +337,24 @@ read bidon sqmip bidon < /root/toto
 # if you use the full step mode (mode 0) then maxstep=2040 is the number of steps i.e. 1 step = 0.17578125
 pos=0
 scandone=0
-count=0
+count=1
 newstep=0
+tim=0
 let movestep=maxstep/128
-#
-#  searching for gps
-#
-if [ $gpsf -eq 1 ] 
-then echo "GPS mode activated"
-     if [ `ls /dev | grep $gpsport`  ] 
-     then echo "GPS look present." 
-          globalpos
-     else /bin/echo "GPS not present: using coords. from localconfig"
-          #
-          #  reading longitude and latitude from localconfig
-          #
-          if [ `grep -c " " /home/sand/localconfig` -ne 0 ]
-          then /bin/grep Longitude /home/sand/localconfig > /root/ligne.tmp
-               read bidon lon bidon < /root/ligne.tmp
-               /bin/grep Latitude /home/sand/localconfig > /root/ligne.tmp
-               read bidon lat bidon < /root/ligne.tmp
-               /bin/grep Altitude /home/sand/localconfig > /root/ligne.tmp
-               read bidon alt bidon < /root/ligne.tmp
-          else echo "Please put something in /home/sand/localconfig and restart observe-sqm-stepper.bash."
-          fi
-          # /bin/echo "Latitude:" $lat ", Longitude:" $lon
-     fi
-else  echo "GPS mode off"
-fi
 /bin/grep "Site_name" /home/sand/localconfig > /root/ligne.tmp
 read bidon NAME bidon < /root/ligne.tmp
 #
 # main loop
 #
+time1=`date +%s`
 i=0
 while [ $i -lt $nobs ]
 do    findIntegration
+      while [ $tim -ge $maxInt ]
+      do echo "Too dark, waiting 30sec"
+	 sleep 30
+         findIntegration
+      done
       findIntBrightness
       while [ $meas -le $minim ]    # too bright it is daytime
       do findIntBrightness
@@ -394,7 +381,6 @@ do    findIntegration
                 then /bin/grep Longitude /home/sand/localconfig > /root/ligne.tmp
                      read bidon lon bidon < /root/ligne.tmp
                      /bin/grep Latitude /home/sand/localconfig > /root/ligne.tmp
-		0
                      read bidon lat bidon < /root/ligne.tmp
                      /bin/grep Altitude /home/sand/localconfig > /root/ligne.tmp
                      read bidon alt bidon < /root/ligne.tmp
@@ -405,75 +391,79 @@ do    findIntegration
            fi
       else  echo "GPS mode off"
       fi
-if [ $scandone -eq 1 ]
-then  findIntBrightness
-      recentime=0
-      if [ $count -eq $nmeas ]
-      then count=0
-	   if [ $meas -lt $minim ]  # reset the filter wheel scan flag for the next day
-           then scandone=0
-	   else recenter
-           fi
-      fi
-      if [  $nobs != 9999 ] 
-      then let i=i+1 #   never ending loop
-      fi
-      n=0
       echo "=========================="
-      echo "Start measurement #" $count"/"$nmeas
-      while [ $n -lt ${#filters[*]} ]
-      do filter=${filters[$n]}
-	 destina=${filterpos[$n]}
-         let ang=destina-pos
-         # moving filter wheel
-         echo "Moving the filter wheel to filter " $n "("${fname[$n]}")"
-         let pos=pos+ang
-         # echo "Moving to position " $pos $ang $destina $n
-         /usr/local/bin/MoveStepFilterWheel.py $ang 0  
-         echo "Reading sqm, Filter: " $n
-         # echo "Waiting time:" $waittime
-         /bin/sleep $waittime  # let enough time to be sure that the reading comes from
- 	 # that filter
-         /bin/sleep 0.5
-	 /usr/local/bin/sqmleread.pl $sqmip 10001 1 > /root/sqmdata.tmp
-         # echo "End of reading"      
-         read sqm < /root/sqmdata.tmp
-         echo $sqm | sed 's/,/ /g' | sed 's/m//g' > /root/toto.tmp
-         read bidon sb bidon < /root/toto.tmp
-         # keep the sqm value in mag per square arc second
-         sqmread[$n]=`/bin/echo $sb"+"${calib[$n]} |/usr/bin/bc -l`
-         sqmreads[$n]=`printf "%0.2f\n" ${sqmread[$n]}`
-         echo "Sky brightness in band " $n " = " ${sqmreads[$n]}
-         # convert mag par sq arc second to flux
-         # convert mpsas to W cm-2 sr-1
-         # Sanchez de Miguel, A., M. Aube, Jaime Zamorano, M. Kocifaj, J. Roby, and C. Tapia. 
-         # "Sky Quality Meter measurements in a colour-changing world." 
-         # Monthly Notices of the Royal Astronomical Society 467, no. 3 (2017): 2966-2979.
-         #      sbcal[$n]=`/bin/echo "270.0038*10^(-0.4*"${sqmread[$n]}")" |/usr/bin/bc -l`
-         sbcal[$n]=`/bin/echo "270.0038*e((-0.4*"${sqmread[$n]}")*l(10))" |/usr/bin/bc -l`
-         sbcals[$n]=`printf "%0.6e\n" ${sbcal[$n]}`
-         echo "Flux in band " $n " = "${sbcals[$n]}
-         let n=n+1
-      done
-      nomfich=`date -u +"%Y-%m-%d"`
-      nomfich=$nomfich".txt"
-      time=`date +%Y-%m-%d" "%H:%M:%S`
-      y=`date +%Y`
-      mo=`date +%m`
-      d=`date +%d`
-      if [ ! -d /var/www/html/data/$y ]
-      then mkdir /var/www/html/data/$y
+      echo "Start measurement #" $count"/"$nmeas "before rescan of the SQM position."
+      if [ $scandone -eq 1 ]
+      then  findIntBrightness
+            recentime=0
+            if [ $count -eq $nmeas ]
+            then count=1
+	         if [ $meas -lt $minim ]  # reset the filter wheel scan flag for the next day
+                 then scandone=0
+	         else recenter
+                 fi
+	    else let count=count+1
+            fi
+            if [  $nobs != 9999 ] 
+            then let i=i+1 #   never ending loop
+            fi
+            n=0
+            while [ $n -lt ${#filters[*]} ]
+            do filter=${filters[$n]}
+	       destina=${filterpos[$n]}
+               let ang=destina-pos
+               # moving filter wheel
+               echo "Moving the filter wheel to filter " $n "("${fname[$n]}")"
+               let pos=pos+ang
+               # echo "Moving to position " $pos $ang $destina $n
+               /usr/local/bin/MoveStepFilterWheel.py $ang 0  
+               echo "Reading sqm, Filter: " $n
+               # echo "Waiting time:" $waittime
+               /bin/sleep $waittime  # let enough time to be sure that the reading comes from
+ 	       # that filter
+               /bin/sleep 0.5
+	       /usr/local/bin/sqmleread.pl $sqmip 10001 1 > /root/sqmdata.tmp
+               # echo "End of reading"      
+               read sqm < /root/sqmdata.tmp
+               echo $sqm | sed 's/,/ /g' | sed 's/m//g' > /root/toto.tmp
+               read bidon sb bidon < /root/toto.tmp
+               # keep the sqm value in mag per square arc second
+               sqmread[$n]=`/bin/echo $sb"+"${calib[$n]} |/usr/bin/bc -l`
+               sqmreads[$n]=`printf "%0.2f\n" ${sqmread[$n]}`
+               echo "Sky brightness in band " $n " = " ${sqmreads[$n]}
+               # convert mag par sq arc second to flux
+               # convert mpsas to W cm-2 sr-1
+               # Sanchez de Miguel, A., M. Aube, Jaime Zamorano, M. Kocifaj, J. Roby, and C. Tapia. 
+               # "Sky Quality Meter measurements in a colour-changing world." 
+               # Monthly Notices of the Royal Astronomical Society 467, no. 3 (2017): 2966-2979.
+               #      sbcal[$n]=`/bin/echo "270.0038*10^(-0.4*"${sqmread[$n]}")" |/usr/bin/bc -l`
+               sbcal[$n]=`/bin/echo "270.0038*e((-0.4*"${sqmread[$n]}")*l(10))" |/usr/bin/bc -l`
+               sbcals[$n]=`printf "%0.6e\n" ${sbcal[$n]}`
+               echo "Flux in band " $n " = "${sbcals[$n]}
+               let n=n+1
+            done
+            nomfich=`date -u +"%Y-%m-%d"`
+            nomfich=$nomfich".txt"
+            time=`date +%Y-%m-%d" "%H:%M:%S`
+            y=`date +%Y`
+            mo=`date +%m`
+            d=`date +%d`
+            if [ ! -d /var/www/html/data/$y ]
+            then mkdir /var/www/html/data/$y
+            fi
+            if [ ! -d /var/www/html/data/$y/$mo ]
+            then /bin/mkdir /var/www/html/data/$y/$mo
+            fi
+            echo $time $lat $lon $alt $temp $waittime ${sqmreads[0]} ${sqmreads[1]} ${sqmreads[2]} ${sqmreads[3]} ${sqmreads[4]} ${sbcals[0]} ${sbcals[1]} ${sbcals[2]} ${sbcals[3]} ${sbcals[4]}>> /var/www/html/data/$y/$mo/$nomfich
       fi
-      if [ ! -d /var/www/html/data/$y/$mo ]
-      then /bin/mkdir /var/www/html/data/$y/$mo
-      fi
-      echo $time $lat $lon $alt $temp ${sqmreads[0]} ${sqmreads[1]} ${sqmreads[2]} ${sqmreads[3]} ${sqmreads[4]} ${sbcals[0]} ${sbcals[1]} ${sbcals[2]} ${sbcals[3]} ${sbcals[4]}>> /var/www/html/data/$y/$mo/$nomfich
-      let idle=120-5*tim-43  # one measurement every 2 min 30 sec
+      time2=`date +%s`
+      let idle=300-time2+time1  # one measurement every 5 min
+      echo $idle $time1 $time2
       if [ $idle -lt 0 ] ; then let idle=0; fi
-#      echo "Wait " $idle "s before next reading."
-#      /bin/sleep $idle
-      let count=count+1
-fi
+      echo "Wait " $idle "s before next reading."
+      /bin/sleep $idle
+      time1=`date +%s`
+
 done
 echo "End of observe-sqm-stepper.bash"
 exit 0
