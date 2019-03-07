@@ -1,7 +1,5 @@
 # localconfig file for CoSQM
 # please be sure to put a line for the observation command without any comments.  
-cammodel raspberry-pi                                       # Sky and ambient brightness monitoring cam. Can be linksys dlink IPVideo9100A or none
-darkness_threshold 100                                      # darkness level threshold for cam1
 Longitude-W 71.886482                                       # longitude of the observation site
 Latitude-N 45.410225                                        # latitude of the observation site
 Altitude    230                                       # site altitude relative to sea level (m)

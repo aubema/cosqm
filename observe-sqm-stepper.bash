@@ -323,7 +323,7 @@ maxInt=20               # maximal allowed integration time
 # At that moment the sky is relatively uniform and the integration time is short
 # minim should be written as 100xSkyBrightness (e.g for Sky brightness of 11.0 you 
 # should write 1100
-minim=1000 # minimal value of the interval of sky brightness optimal to find SQM position
+minim=800 # minimal value of the interval of sky brightness optimal to find SQM position sugg. 1000
 #
 # set band list
 # wavelengths 0:= Clear ,1:= Red 2:= Green ,3:= Blue ,4:= Yellow
@@ -461,7 +461,7 @@ do    findIntegration
             echo $time $lat $lon $alt $temp $waittime ${sqmreads[0]} ${sqmreads[1]} ${sqmreads[2]} ${sqmreads[3]} ${sqmreads[4]} ${sbcals[0]} ${sbcals[1]} ${sbcals[2]} ${sbcals[3]} ${sbcals[4]}>> /var/www/html/data/$y/$mo/$nomfich
       fi
       time2=`date +%s`
-      let idle=300-time2+time1  # one measurement every 5 min
+      let idle=180-time2+time1  # one measurement every 3 min
       echo $idle $time1 $time2
       if [ $idle -lt 0 ] ; then let idle=0; fi
       echo "Wait " $idle "s before next reading."
