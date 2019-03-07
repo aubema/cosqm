@@ -344,7 +344,7 @@ count=1
 newstep=0
 tim=0
 let movestep=maxstep/128
-sleep 10
+sleep 10  # let 10 second to the gps to cleanly startup
 /bin/grep "Site_name" /home/sand/localconfig > /root/ligne.tmp
 read bidon NAME bidon < /root/ligne.tmp
 #
@@ -461,7 +461,7 @@ do    findIntegration
             echo $time $lat $lon $alt $temp $waittime ${sqmreads[0]} ${sqmreads[1]} ${sqmreads[2]} ${sqmreads[3]} ${sqmreads[4]} ${sbcals[0]} ${sbcals[1]} ${sbcals[2]} ${sbcals[3]} ${sbcals[4]}>> /var/www/html/data/$y/$mo/$nomfich
       fi
       time2=`date +%s`
-      let idle=180-time2+time1  # one measurement every 3 min
+      let idle=120-time2+time1  # one measurement every 2 min
       echo $idle $time1 $time2
       if [ $idle -lt 0 ] ; then let idle=0; fi
       echo "Wait " $idle "s before next reading."
