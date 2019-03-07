@@ -278,7 +278,9 @@ globalpos () {
 #
      /bin/echo "Waiting 10 sec for GPS reading..."
      sleep 10
-     /usr/bin/gpspipe -w -n 10 > /root/coords.tmp
+     /usr/bin/gpspipe -w -n 10 > /root/coords.tmp &
+     sleep 1
+     killall gpspipe
      /usr/bin/tail -2 /root/coords.tmp | sed 's/,/\n/g' | sed 's/"//g' | sed 's/:/ /g'> /root/bidon.tmp
      grep lat /root/bidon.tmp > /root/bidon1.tmp
      read bidon lat bidon1 < /root/bidon1.tmp
@@ -342,6 +344,7 @@ count=1
 newstep=0
 tim=0
 let movestep=maxstep/128
+sleep 10
 /bin/grep "Site_name" /home/sand/localconfig > /root/ligne.tmp
 read bidon NAME bidon < /root/ligne.tmp
 #
