@@ -1,7 +1,7 @@
 #!/bin/bash 
 #
 #   
-#    Copyright (C) 2018  Martin Aube Mia Caron
+#    Copyright (C) 2019  Martin Aube
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -86,12 +86,9 @@ findSQM () {
        # moving filter wheel
        echo "Moving the filter wheel to filter " $n "("${fname[$n]}")"
        let pos=pos+ang
-       # echo "Moving to position " $pos $ang $destina $n
        /usr/local/bin/MoveStepFilterWheel.py $ang 0  
        echo "Reading sqm, Filter: " $n
-       # echo "Waiting time:" $waittime
-       /bin/sleep $waittime  # let enough time to be sure that the reading comes from
-       # that filter
+       /bin/sleep $waittime  # let enough time to be sure that the reading comes from that filter
        /bin/sleep 0.5
        findIntBrightness 
        if [ $meas -lt $maxbright ]
@@ -100,31 +97,30 @@ findSQM () {
        fi
        let n=n+1
     done
-       let possqm=maxbrightpos
-       let filterpos[0]=possqm
-       let filterpos[1]=possqm+maxstep/5
-       if [ ${filterpos[1]} -gt $maxstep ]
-       then let filterpos[1]=filterpos[1]-maxstep
-       fi
-       let filterpos[2]=possqm+2*maxstep/5
-       if [ ${filterpos[2]} -gt $maxstep ]
-       then let filterpos[2]=filterpos[2]-maxstep
-       fi
-       let filterpos[3]=possqm+3*maxstep/5
-       if [ ${filterpos[3]} -gt $maxstep ]
-       then let filterpos[3]=filterpos[3]-maxstep
-       fi
-       let filterpos[4]=possqm+4*maxstep/5
-       if [ ${filterpos[4]} -gt $maxstep ]
-       then let filterpos[4]=filterpos[4]-maxstep
-       fi
-      echo "Move to clear filter"
-        destina=${filterpos[0]}
-       let ang=destina-pos
-       # moving filter wheel
-       echo "Moving the filter wheel to filter " $n "("${fname[0]}")"
-       let pos=pos+ang
-       /usr/local/bin/MoveStepFilterWheel.py $ang 0   
+    let possqm=maxbrightpos
+    let filterpos[0]=possqm
+    let filterpos[1]=possqm+maxstep/5
+    if [ ${filterpos[1]} -gt $maxstep ]
+    then let filterpos[1]=filterpos[1]-maxstep
+    fi
+    let filterpos[2]=possqm+2*maxstep/5
+    if [ ${filterpos[2]} -gt $maxstep ]
+    then let filterpos[2]=filterpos[2]-maxstep
+    fi
+    let filterpos[3]=possqm+3*maxstep/5
+    if [ ${filterpos[3]} -gt $maxstep ]
+    then let filterpos[3]=filterpos[3]-maxstep
+    fi
+    let filterpos[4]=possqm+4*maxstep/5
+    if [ ${filterpos[4]} -gt $maxstep ]
+    then let filterpos[4]=filterpos[4]-maxstep
+    fi
+    destina=${filterpos[0]}
+    let ang=destina-pos
+    # moving filter wheel
+    echo "Moving the filter wheel to filter " $n "("${fname[0]}")"
+    let pos=pos+ang
+    /usr/local/bin/MoveStepFilterWheel.py $ang 0   
 }
 
 
@@ -135,19 +131,7 @@ center () {
     echo "Searching for nearest filter center..."
      npeak=0
      findIntegration
-#     let destina=possqm-maxstep/10-2*movestep
-
-#echo $destina $possqm $maxstep $movestep $pos
-
-#     if [ $destina -lt 0 ]
-#     then let destina=destina+maxstep
-#     fi
-#     let ang=destina-pos
-#     /usr/local/bin/MoveStepFilterWheel.py $ang 0
-      let newstep=maxstep/5/movestep+1   # move before the preceeding peak
-    # let newstep=4*3-1
-#     let pos=pos+ang
-
+     let newstep=maxstep/5/movestep+1   # move before the preceeding peak
      let n=0
      let memoi=0
      echo "Iter Pos SB"
@@ -232,6 +216,8 @@ globalpos () {
      #date -s "$gpsdate"
      #/usr/sbin/ntpd   
 }
+
+
 #
 # ==================================
 # ==================================
@@ -241,9 +227,9 @@ gpsf=1
 gpsport="ttyACM0"
 nobs=9999  		# number of times measured if 9999 then infinity
 waittime=10             # at a mag of about 24 the integration time is around 60s
-maxstep=2040
-nmeas=5000                 # lowest number of measurements before a possible new scan of the filter wheel
-maxInt=20               # maximal allowed integration time
+maxstep=2040            # this is inherent to the motor and mode used
+nmeas=48                # lowest number of measurements before a possible new scan of the filter wheel. This have to do with your tolerance to an amount of data that you are comfortable to lose un cas of problem. Checking is every 2h can be a nice choice (2x60/2.5=48)
+maxInt=20               # maximal allowed integration time 20s is about 23.2 mag/sqarcsec
 # After startup of the CoSQM, We search for the SQM position of the filter wheel 
 # during twilight (around SB=12)
 # At that moment the sky is relatively uniform and the integration time is short
@@ -261,7 +247,6 @@ possqm=0
 # calib is the magnitude offset for each filter
 fname=(Clear Red Green Blue Yellow)
 grep sqmIP /home/sand/localconfig > /root/toto # sqmIP est le mot cle cherche dans le localconfig 
-      # echo "Required acquistion time:" $waittime
 read bidon sqmip bidon < /root/toto
 # one complete rotation in half step mode (mode 1) is maxstep=4080 i.e. 1 step = 0.087890625 deg
 # if you use the full step mode (mode 0) then maxstep=2040 is the number of steps i.e. 1 step = 0.17578125
@@ -319,9 +304,8 @@ do    findIntegration
                 else 
                      echo "Please put something in /home/sand/localconfig and restart observe-sqm-stepper.bash."
                 fi
-                # /bin/echo "Latitude:" $lat ", Longitude:" $lon
            fi
-      else  echo "GPS mode off"
+      else echo "GPS mode off"
       fi
       echo "=========================="
       echo "Start measurement #" $count"/"$nmeas "before rescan of the SQM position."
@@ -348,15 +332,12 @@ do    findIntegration
                # moving filter wheel
                echo "Moving the filter wheel to filter " $n "("${fname[$n]}")"
                let pos=pos+ang
-               # echo "Moving to position " $pos $ang $destina $n
                /usr/local/bin/MoveStepFilterWheel.py $ang 0  
                echo "Reading sqm, Filter: " $n
-               # echo "Waiting time:" $waittime
                /bin/sleep $waittime  # let enough time to be sure that the reading comes from
  	       # that filter
                /bin/sleep 0.5
 	       /usr/local/bin/sqmleread.pl $sqmip 10001 1 > /root/sqmdata.tmp
-               # echo "End of reading"      
                read sqm < /root/sqmdata.tmp
                echo $sqm | sed 's/,/ /g' | sed 's/m//g' > /root/toto.tmp
                read bidon sb bidon < /root/toto.tmp
@@ -396,10 +377,6 @@ do    findIntegration
       echo "Wait " $idle "s before next reading."
       /bin/sleep $idle
       time1=`date +%s`
-
 done
 echo "End of observe-sqm-stepper.bash"
 exit 0
-
-
-
