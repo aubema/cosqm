@@ -192,7 +192,7 @@ globalpos () {
      sleep 10
      /usr/bin/gpspipe -w -n 10 > /root/coords.tmp &
      sleep 1
-     killall -q gpspipe 
+     killall -s SIGNT gpspipe 
      /usr/bin/tail -2 /root/coords.tmp | sed 's/,/\n/g' | sed 's/"//g' | sed 's/:/ /g'> /root/bidon.tmp
      grep lat /root/bidon.tmp > /root/bidon1.tmp
      read bidon lat bidon1 < /root/bidon1.tmp
