@@ -374,7 +374,6 @@ do    findIntegration
       fi
       time2=`date +%s`
       let idle=150-time2+time1  # one measurement every 2.5 min
-      echo $idle $time1 $time2
       if [ $idle -lt 0 ] ; then let idle=0; fi
       echo "Wait " $idle "s before next reading."
       /bin/sleep $idle
