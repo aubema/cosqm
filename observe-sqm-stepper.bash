@@ -79,21 +79,30 @@ findSQM () {
     maxgrightpos=0
     findIntegration
     n=0
-    while [ $n -lt ${#filters[*]} ]
+    while [ $n -le ${#filters[*]} ]
     do filter=${filters[$n]}
        destina=${filterpos[$n]}
        let ang=destina-pos
        # moving filter wheel
-       echo "Moving the filter wheel to filter " $n "("${fname[$n]}")"
+       echo "Moving the filter wheel to filter position " $n
        let pos=pos+ang
        /usr/local/bin/MoveStepFilterWheel.py $ang 0  
-       echo "Reading sqm, Filter: " $n
+       echo "Reading sqm at position: " $n
        /bin/sleep $waittime  # let enough time to be sure that the reading comes from that filter
-       /bin/sleep 0.5
+       /bin/sleep 0.1
        findIntBrightness 
-       if [ $meas -lt $maxbright ]
-       then let maxbright=meas
-            let maxbrightpos=pos
+       let IntBright[$n]=meas
+       echo "n="$n
+       let n=n+1
+    done
+    # correct for possible drift in the brightness during the scan
+    let drift=IntBright[5]-IntBright[0]
+    n=0
+    while [ $n -lt ${#filters[*]} ]
+    do let IntBright[$n]=IntBright[$n]-drift*n/5
+       if [ ${IntBright[$n]} -lt $maxbright ]
+       then let maxbright=IntBright[$n]
+            let maxbrightpos=${filterpos[$n]}
        fi
        let n=n+1
     done
@@ -134,11 +143,11 @@ center () {
      let newstep=maxstep/5/movestep+1   # move before the preceeding peak
      let n=0
      let memoi=0
-     echo "Iter Pos SB"
+     echo -e "Iter \t\t Pos \t\t SB"
      while [ $n -le $newstep ]
      do /usr/local/bin/MoveStepFilterWheel.py $movestep 0
 	findIntBrightness
-	echo $n $pos $meas
+	echo -e $n "\t\t" $pos "\t\t" $meas
 	if [ $meas -gt $memoi ]
         then let memoi=meas
              let pospeak=pos
@@ -173,23 +182,17 @@ center () {
      if [ ${filterpos[4]} -gt $maxstep ]
      then let filterpos[4]=filterpos[4]-maxstep
      fi
-     echo "Filter positions:" ${filterpos[*]}
-     # go to clear filter
-     n=0
-     destina=${filterpos[$n]}
-     echo  "Moving to clear filter"
-     let ang=destina-pos
-     let pos=pos+ang
-     /usr/local/bin/MoveStepFilterWheel.py $ang 0
 }
+
+
 # ==================================
 # global positioning system
 globalpos () {
 #
 #    reading 10 gps transactions
 #
-     /bin/echo "Waiting 10 sec for GPS reading..."
-     sleep 10
+#     /bin/echo "Waiting 10 sec for GPS reading..."
+#     sleep 10
      /usr/bin/gpspipe -w -n 10 > /root/coords.tmp &
      sleep 1
      killall -s SIGINT gpspipe 
@@ -219,7 +222,6 @@ globalpos () {
 
 
 #
-# ==================================
 # ==================================
 # main
 # activate gps option 0=off 1=on
