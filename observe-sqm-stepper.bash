@@ -92,7 +92,7 @@ findSQM () {
        /bin/sleep 0.1
        findIntBrightness 
        let IntBright[$n]=meas
-       echo "n="$n
+       echo "n="$n " SB=" $meas
        let n=n+1
     done
     # correct for possible drift in the brightness during the scan
