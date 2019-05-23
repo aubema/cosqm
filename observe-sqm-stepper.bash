@@ -182,6 +182,10 @@ center () {
      if [ ${filterpos[4]} -gt $maxstep ]
      then let filterpos[4]=filterpos[4]-maxstep
      fi
+     let filterpos[5]=possqm+5*maxstep/5
+     if [ ${filterpos[5]} -gt $maxstep ]
+     then let filterpos[5]=filterpos[5]-maxstep
+     fi     
 }
 
 
