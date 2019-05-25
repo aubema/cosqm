@@ -242,6 +242,7 @@ maxInt=20               # maximal allowed integration time 20s is about 23.2 mag
 # minim should be written as 100xSkyBrightness (e.g for Sky brightness of 11.0 you 
 # should write 1100
 minim=800 # minimal value of the interval of sky brightness optimal to find SQM position sugg. 1000
+scanlevel=1200  # must be brightest than that level to perfore the filter scans, i.e. brightness values lower that scanlevel/100
 #
 # set band list
 # wavelengths 0:= Clear ,1:= Red 2:= Green ,3:= Blue ,4:= Yellow
@@ -284,9 +285,11 @@ do    findIntegration
 	 sleep 60
       done
       if [ $scandone -eq 0 ]
-      then center
-           findSQM
-	   scandone=1
+      then if [ $meas -le $scanlevel ]
+           then center
+                findSQM
+	        scandone=1
+           fi
       fi
       #
       #  searching for gps
@@ -322,8 +325,10 @@ do    findIntegration
             then count=1
 	         if [ $meas -lt $minim ]  # reset the filter wheel scan flag for the next day
                  then scandone=0
-	         else center
-                      findSQM
+	         else if [ $meas -le $scanlevel ] 
+                      then center
+                           findSQM
+                      fi
                  fi
 	    else let count=count+1
             fi
