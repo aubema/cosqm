@@ -290,6 +290,7 @@ do    findIntegration
            then center
                 findSQM
 	        scandone=1
+                count=0
            fi
       fi
       #
@@ -317,11 +318,15 @@ do    findIntegration
            fi
       else echo "GPS mode off"
       fi
-      echo "=========================="
-      echo "Start measurement #" $count"/"$nmeas "before rescan of the SQM position."
+#      echo "=========================="
+#      echo "Start measurement #" $count"/"$nmeas "before rescan of the SQM position."
+
       if [ $scandone -eq 1 ]
       then  findIntBrightness
             recentime=0
+            let count=count+1
+            echo "=========================="
+            echo "Start measurement #" $count
 #            if [ $count -eq $nmeas ]
 #            then count=1
 #	         if [ $meas -lt $minim ]  # reset the filter wheel scan flag for the next day
