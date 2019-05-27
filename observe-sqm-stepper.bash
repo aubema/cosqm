@@ -286,7 +286,8 @@ do    findIntegration
 	 sleep 60
       done
       if [ $scandone -eq 0 ]                                    # filter scan not yet done today
-      then if [ $meas -le $scanlevel ] && [ $meas -ge $minim ]  # it is twilight
+      then echo "Brightness = " $meas
+           if [ $meas -le $scanlevel ] && [ $meas -ge $minim ]  # it is twilight
            then center
                 findSQM
 	        scandone=1
