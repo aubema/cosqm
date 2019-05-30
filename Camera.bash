@@ -55,27 +55,6 @@ if [ ! $mean ] ; then mean=0 ; fi
 
 echo $mean | sed 's/\./ /g' > /home/sand/toto.tmp
 read luminosite bidon < /home/sand/toto.tmp
-
-# if it is dark increase the gain to the maximum and take a new image
-if [ $luminosite -le 50 ] 
-then /usr/bin/raspistill  -ss 60000000 -awb off -awbg 8,8 -ISO 1600 -o obstmp.jpg
-     /usr/bin/convert -resize 640x640^ -gaussian-blur 0.05 -quality 85%  obstmp.jpg sky.jpg
-     rm -f obstmp.jpg
-fi
-# mesurer le niveau de gris moyen (mean) sur cammodel
-/usr/bin/identify -verbose /home/sand/sky.jpg | /bin/grep mean | /bin/sed 's/mean://g' |  /usr/bin/tr -d '\n' > /home/sand/mean.tmp
-read r rr g gg b bb < /home/sand/mean.tmp 
-/bin/echo $r $g $b
-/bin/echo $r $g $b >> /home/sand/color.txt
-if [ ! $b ]
-#support des image grayscale
-then let mean=r
-else mean=`/bin/echo "scale=0;("$r"+"$g"+"$b")/3." | /usr/bin/bc -l` 
-fi
-echo $mean | sed 's/\./ /g' > /home/sand/toto.tmp
-read luminosite bidon < /home/sand/toto.tmp
-if [ ! $mean ] ; then mean=0 ; fi
-/bin/echo $mean > /home/sand/webcam-mean
 #
 #
 #
