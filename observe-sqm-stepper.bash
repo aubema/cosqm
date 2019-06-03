@@ -275,6 +275,11 @@ while [ $i -lt $nobs ]
 do    findIntegration
       while [ $tim -ge $maxInt ]
       do echo "Too dark, waiting 1 min"
+	 /usr/local/bin/sqmleread.pl $sqmip 10001 1 > /root/sqmdata.tmp
+         read sqm < /root/sqmdata.tmp
+         echo $sqm | sed 's/,/ /g' | sed 's/m//g' > /root/toto.tmp
+         read bidon sbd bidon < /root/toto.tmp
+         echo "Recorded sky brightness on filter " ${fname[$n]} ": "$sbd 
 	 sleep 60
          findIntegration
       done
