@@ -270,7 +270,8 @@ read bidon NAME bidon < /root/ligne.tmp
 time1=`date +%s`
 i=0
 while [ $i -lt $nobs ]
-do    findIntBrightness
+do    findIntegration
+      findIntBrightness
       while [ $meas -le $minim ]    # too bright it is daytime
       do findIntBrightness
 	 echo "Brightness = " $meas "Wait 1 min until twilight ("$minim"<(SBx100))"
