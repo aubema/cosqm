@@ -234,8 +234,6 @@ gpsport="ttyACM0"
 nobs=9999  		# number of times measured if 9999 then infinity
 waittime=10             # at a mag of about 24 the integration time is around 60s
 maxstep=2040            # this is inherent to the motor and mode used
-nmeas=6                 # lowest number of measurements before a possible new scan of the filter wheel. This have to do with your tolerance to an amount of data that you are comfortable to lose un cas of problem. Checking is every 2h can be a nice choice (2x60/2.5=48)
-maxInt=20               # maximal allowed integration time 20s is about 23.2 mag/sqarcsec
 # After startup of the CoSQM, We search for the SQM position of the filter wheel 
 # during twilight (around SB=11)
 # At that moment the sky is relatively uniform and the integration time is short
@@ -272,18 +270,7 @@ read bidon NAME bidon < /root/ligne.tmp
 time1=`date +%s`
 i=0
 while [ $i -lt $nobs ]
-do    findIntegration
-      while [ $tim -ge $maxInt ]
-      do echo "Too dark, waiting 1 min"
-	 /usr/local/bin/sqmleread.pl $sqmip 10001 1 > /root/sqmdata.tmp
-         read sqm < /root/sqmdata.tmp
-         echo $sqm | sed 's/,/ /g' | sed 's/m//g' > /root/toto.tmp
-         read bidon sbd bidon < /root/toto.tmp
-         echo "Recorded sky brightness on filter " ${fname[$n]} ": "$sbd 
-	 sleep 60
-         findIntegration
-      done
-      findIntBrightness
+do    findIntBrightness
       while [ $meas -le $minim ]    # too bright it is daytime
       do findIntBrightness
 	 echo "Brightness = " $meas "Wait 1 min until twilight ("$minim"<(SBx100))"
@@ -324,29 +311,12 @@ do    findIntegration
            fi
       else echo "GPS mode off"
       fi
-#      echo "=========================="
-#      echo "Start measurement #" $count"/"$nmeas "before rescan of the SQM position."
-
       if [ $scandone -eq 1 ]
       then  findIntBrightness
             recentime=0
             let count=count+1
             echo "=========================="
             echo "Start measurement #" $count
-#            if [ $count -eq $nmeas ]
-#            then count=1
-#	         if [ $meas -lt $minim ]  # reset the filter wheel scan flag for the next day
-#                then scandone=0
-#	         else if [ $meas -le $scanlevel ] 
-#                      then center
-#                           findSQM
-#                     fi
-#                 fi
-#	     else let count=count+1
-#            fi
-
-
-
             if [  $nobs != 9999 ] 
             then let i=i+1 #   never ending loop
             fi
