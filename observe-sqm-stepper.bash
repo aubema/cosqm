@@ -86,7 +86,8 @@ findSQM () {
     let moy[3]=0
     let moy[4]=0
     while [ $nn -le $nmoy ]
-    do n=0
+    do echo "Finding clear filter...  SCAn # " $nn
+       n=0
        while [ $n -le ${#filters[*]} ]
        do filter=${filters[$n]}
           destina=${filterpos[$n]}
@@ -256,7 +257,7 @@ maxstep=2040            # this is inherent to the motor and mode used
 # minim should be written as 100xSkyBrightness (e.g for Sky brightness of 9.0 you 
 # should write 900
 minim=900 # minimal value of the interval of sky brightness optimal to find SQM position suggested value 900
-scanlevel=1300  # must be brightest than that level to perfore the filter scans, i.e. brightness values lower that scanlevel/100 suggested value 1100
+scanlevel=1500  # must be brightest than that level to perfore the filter scans, i.e. brightness values lower that scanlevel/100 suggested value 1100
 #
 # set band list
 # wavelengths 0:= Clear ,1:= Red 2:= Green ,3:= Blue ,4:= Yellow
