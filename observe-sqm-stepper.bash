@@ -77,22 +77,38 @@ findSQM () {
     echo "Searching for the clear filter..."
     maxbright=99999
     maxgrightpos=0
+    nmoy=9    # number of scan to average for a better retreival of the clear filter
     findIntegration
+    nn=0
+    let moy[0]=0
+    let moy[1]=0
+    let moy[2]=0
+    let moy[3]=0
+    let moy[4]=0
+    while [ $nn -le $nmoy ]
+    do n=0
+       while [ $n -le ${#filters[*]} ]
+       do filter=${filters[$n]}
+          destina=${filterpos[$n]}
+          let ang=destina-pos
+          # moving filter wheel
+          echo "Moving the filter wheel to filter position " $n
+          let pos=pos+ang
+          /usr/local/bin/MoveStepFilterWheel.py $ang 0  
+          echo "Reading sqm at position: " $n
+          /bin/sleep $waittime  # let enough time to be sure that the reading comes from that filter
+          /bin/sleep 0.1
+          findIntBrightness 
+          let IntBright[$n]=meas
+          echo "n="$n " SB=" $meas
+          let moy[$n]=moy[$n]+IntBright[$n]
+          let n=n+1
+       done
+       let nn=nn+1
+    done
     n=0
     while [ $n -le ${#filters[*]} ]
-    do filter=${filters[$n]}
-       destina=${filterpos[$n]}
-       let ang=destina-pos
-       # moving filter wheel
-       echo "Moving the filter wheel to filter position " $n
-       let pos=pos+ang
-       /usr/local/bin/MoveStepFilterWheel.py $ang 0  
-       echo "Reading sqm at position: " $n
-       /bin/sleep $waittime  # let enough time to be sure that the reading comes from that filter
-       /bin/sleep 0.1
-       findIntBrightness 
-       let IntBright[$n]=meas
-       echo "n="$n " SB=" $meas
+    do let IntBright[$n]=moy[$n]/nmoy
        let n=n+1
     done
     # correct for possible drift in the brightness during the scan
