@@ -370,6 +370,13 @@ do    findIntegration
                echo "Flux in band " $n " = "${sbcals[$n]}
                let n=n+1
             done
+            # goto the red filter to protect the sqm lens
+            destina=${filterpos[1]}
+            let ang=destina-pos
+            # moving filter wheel
+            echo "Moving the filter wheel to filter 1 ("${fname[1]}")"
+            let pos=pos+ang
+            /usr/local/bin/MoveStepFilterWheel.py $ang 0      
             nomfich=`date -u +"%Y-%m-%d"`
             nomfich=$nomfich".txt"
             time=`date +%Y-%m-%d" "%H:%M:%S`
