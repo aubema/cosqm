@@ -289,7 +289,7 @@ i=0
 while [ $i -lt $nobs ]
 do    findIntegration
       findIntBrightness
-      while [ $meas -le $minim ]    # too bright it is daytime
+      while [ $meas -le $minim ] && [ $scandone -eq 0 ]   # too bright it is daytime
       do findIntBrightness
 	 echo "Brightness = " $meas "Wait 1 min until twilight ("$minim"<(SBx100))"
          scandone=0
@@ -331,65 +331,67 @@ do    findIntegration
       fi
       if [ $scandone -eq 1 ]
       then  findIntBrightness
-            recentime=0
-            let count=count+1
-            echo "=========================="
-            echo "Start measurement #" $count
-            if [  $nobs != 9999 ] 
-            then let i=i+1 #   never ending loop
-            fi
-            n=0
-            while [ $n -lt ${#filters[*]} ]
-            do filter=${filters[$n]}
-	       destina=${filterpos[$n]}
+            if [ $meas -le $minim ]    # too bright it is daytime
+               recentime=0
+               let count=count+1
+               echo "=========================="
+               echo "Start measurement #" $count
+               if [  $nobs != 9999 ] 
+               then let i=i+1 #   never ending loop
+               fi
+               n=0
+               while [ $n -lt ${#filters[*]} ]
+               do filter=${filters[$n]}
+	          destina=${filterpos[$n]}
+                  let ang=destina-pos
+                  # moving filter wheel
+                  echo "Moving the filter wheel to filter " $n "("${fname[$n]}")"
+                  let pos=pos+ang
+                  /usr/local/bin/MoveStepFilterWheel.py $ang 0  
+                  echo "Reading sqm, Filter: " $n
+                  /bin/sleep $waittime  # let enough time to be sure that the reading comes from
+ 	          # that filter
+                  /bin/sleep 5.0
+	          /usr/local/bin/sqmleread.pl $sqmip 10001 1 > /root/sqmdata.tmp
+                  read sqm < /root/sqmdata.tmp
+                  echo $sqm | sed 's/,/ /g' | sed 's/m//g' > /root/toto.tmp
+                  read bidon sb bidon < /root/toto.tmp
+                  # keep the sqm value in mag per square arc second
+                  sqmread[$n]=`/bin/echo $sb"+"${calib[$n]} |/usr/bin/bc -l`
+                  sqmreads[$n]=`printf "%0.2f\n" ${sqmread[$n]}`
+                  echo "Sky brightness in band " $n " = " ${sqmreads[$n]}
+                  # convert mag par sq arc second to flux
+                  # convert mpsas to W cm-2 sr-1
+                  # Sanchez de Miguel, A., M. Aube, Jaime Zamorano, M. Kocifaj, J. Roby, and C. Tapia. 
+                  # "Sky Quality Meter measurements in a colour-changing world." 
+                  # Monthly Notices of the Royal Astronomical Society 467, no. 3 (2017): 2966-2979.
+                  #      sbcal[$n]=`/bin/echo "270.0038*10^(-0.4*"${sqmread[$n]}")" |/usr/bin/bc -l`
+                  sbcal[$n]=`/bin/echo "270.0038*e((-0.4*"${sqmread[$n]}")*l(10))" |/usr/bin/bc -l`
+                  sbcals[$n]=`printf "%0.6e\n" ${sbcal[$n]}`
+                  echo "Flux in band " $n " = "${sbcals[$n]}
+                  let n=n+1
+               done
+               # goto the red filter to protect the sqm lens
+               destina=${filterpos[1]}
                let ang=destina-pos
                # moving filter wheel
-               echo "Moving the filter wheel to filter " $n "("${fname[$n]}")"
+               echo "Moving the filter wheel to filter 1 ("${fname[1]}")"
                let pos=pos+ang
-               /usr/local/bin/MoveStepFilterWheel.py $ang 0  
-               echo "Reading sqm, Filter: " $n
-               /bin/sleep $waittime  # let enough time to be sure that the reading comes from
- 	       # that filter
-               /bin/sleep 5.0
-	       /usr/local/bin/sqmleread.pl $sqmip 10001 1 > /root/sqmdata.tmp
-               read sqm < /root/sqmdata.tmp
-               echo $sqm | sed 's/,/ /g' | sed 's/m//g' > /root/toto.tmp
-               read bidon sb bidon < /root/toto.tmp
-               # keep the sqm value in mag per square arc second
-               sqmread[$n]=`/bin/echo $sb"+"${calib[$n]} |/usr/bin/bc -l`
-               sqmreads[$n]=`printf "%0.2f\n" ${sqmread[$n]}`
-               echo "Sky brightness in band " $n " = " ${sqmreads[$n]}
-               # convert mag par sq arc second to flux
-               # convert mpsas to W cm-2 sr-1
-               # Sanchez de Miguel, A., M. Aube, Jaime Zamorano, M. Kocifaj, J. Roby, and C. Tapia. 
-               # "Sky Quality Meter measurements in a colour-changing world." 
-               # Monthly Notices of the Royal Astronomical Society 467, no. 3 (2017): 2966-2979.
-               #      sbcal[$n]=`/bin/echo "270.0038*10^(-0.4*"${sqmread[$n]}")" |/usr/bin/bc -l`
-               sbcal[$n]=`/bin/echo "270.0038*e((-0.4*"${sqmread[$n]}")*l(10))" |/usr/bin/bc -l`
-               sbcals[$n]=`printf "%0.6e\n" ${sbcal[$n]}`
-               echo "Flux in band " $n " = "${sbcals[$n]}
-               let n=n+1
-            done
-            # goto the red filter to protect the sqm lens
-            destina=${filterpos[1]}
-            let ang=destina-pos
-            # moving filter wheel
-            echo "Moving the filter wheel to filter 1 ("${fname[1]}")"
-            let pos=pos+ang
-            /usr/local/bin/MoveStepFilterWheel.py $ang 0      
-            nomfich=`date -u +"%Y-%m-%d"`
-            nomfich=$nomfich".txt"
-            time=`date +%Y-%m-%d" "%H:%M:%S`
-            y=`date +%Y`
-            mo=`date +%m`
-            d=`date +%d`
-            if [ ! -d /var/www/html/data/$y ]
-            then mkdir /var/www/html/data/$y
+               /usr/local/bin/MoveStepFilterWheel.py $ang 0      
+               nomfich=`date -u +"%Y-%m-%d"`
+               nomfich=$nomfich".txt"
+               time=`date +%Y-%m-%d" "%H:%M:%S`
+               y=`date +%Y`
+               mo=`date +%m`
+               d=`date +%d`
+               if [ ! -d /var/www/html/data/$y ]
+               then mkdir /var/www/html/data/$y
+               fi
+               if [ ! -d /var/www/html/data/$y/$mo ]
+               then /bin/mkdir /var/www/html/data/$y/$mo
+               fi
+               echo $time $lat $lon $alt $temp $waittime ${sqmreads[0]} ${sqmreads[1]} ${sqmreads[2]} ${sqmreads[3]} ${sqmreads[4]} ${sbcals[0]} ${sbcals[1]} ${sbcals[2]} ${sbcals[3]} ${sbcals[4]}>> /var/www/html/data/$y/$mo/$nomfich
             fi
-            if [ ! -d /var/www/html/data/$y/$mo ]
-            then /bin/mkdir /var/www/html/data/$y/$mo
-            fi
-            echo $time $lat $lon $alt $temp $waittime ${sqmreads[0]} ${sqmreads[1]} ${sqmreads[2]} ${sqmreads[3]} ${sqmreads[4]} ${sbcals[0]} ${sbcals[1]} ${sbcals[2]} ${sbcals[3]} ${sbcals[4]}>> /var/www/html/data/$y/$mo/$nomfich
       fi
       time2=`date +%s`
       let idle=150-time2+time1  # one measurement every 2.5 min
