@@ -331,7 +331,7 @@ do    findIntegration
       fi
       if [ $scandone -eq 1 ]
       then  findIntBrightness
-            if [ $meas -le $minim ]    # too bright it is daytime
+            if [ $meas -gt $minim ]    # too bright it is daytime
             then recentime=0
                  let count=count+1
                  echo "=========================="
