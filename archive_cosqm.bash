@@ -11,10 +11,12 @@ while [ $n -le ${#cosqm_addr[*]} ]
 do addr=${cosqm_addr[$n]}
    name=${cosqm_name[$n]}
    let n=n+1
-   echo "Downloading " $name " ..." $n"/"${#cosqm_addr[*]}
-   rm -fr $addr
-   wget -np -q --cut-dirs 3 -r  -R "index.html*" http://$addr/data/$y/$mo/
+   /bin/echo "Downloading " $name " ..." $n"/"${#cosqm_addr[*]}
+   /bin/rm -fr $addr
+   /usr/bin/wget -np -q --cut-dirs 3 -r  -R "index.html*" http://$addr/data/$y/$mo/
    echo $name " done."
-   cp -fr $addr/* $name/data/$y/$mo/
-   rm -fr $addr
+   /bin/mkdir/$name/data/$y
+   /bin/mkdir/$name/data/$y/$mo
+   /bin/cp -fr $addr/* $name/data/$y/$mo/
+   /bin/rm -fr $addr
 done
