@@ -15,8 +15,8 @@ do addr=${cosqm_addr[$n]}
    /bin/rm -fr $addr
    /usr/bin/wget -np -q --cut-dirs 3 -r  -R "index.html*" http://$addr/data/$y/$mo/
    echo $name " done."
-   /bin/mkdir/$name/data/$y
-   /bin/mkdir/$name/data/$y/$mo
+   if [ ! -s "$name/data/$y" ]; then /bin/mkdir $name/data/$y; fi
+   if [ ! -s "$name/data/$y/$mo" ]; then /bin/mkdir $name/data/$y/$mo; fi
    /bin/cp -fr $addr/* $name/data/$y/$mo/
    /bin/rm -fr $addr
 done
