@@ -297,7 +297,9 @@ read bidon NAME bidon < /root/ligne.tmp
 time1=`date +%s`
 i=0
 while [ $i -lt $nobs ]
-do    findIntegration
+do    y=`date +%Y`
+      mo=`date +%m`
+      findIntegration
       findIntBrightness
       while [ $meas -le $minim ] && [ $scandone -eq 0 ]   # too bright it is daytime
       do findIntBrightness
