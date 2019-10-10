@@ -302,6 +302,7 @@ do    findIntegration
       while [ $meas -le $minim ] && [ $scandone -eq 0 ]   # too bright it is daytime
       do findIntBrightness
 	 echo "Brightness = " $meas "Wait 1 min until twilight ("$minim"<(SBx100))"
+echo $y $mo
          echo "Brightness = " $meas "Wait 1 min until twilight ("$minim"<(SBx100))" >> /var/www/html/data/$y/$mo/cosqm.log
          scandone=0
 	 sleep 60
