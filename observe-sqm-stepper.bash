@@ -60,7 +60,7 @@ findIntegration () {
      echo $sqm | sed 's/,/ /g' | sed 's/s//g' | sed 's/C/ C/g' > /root/toto.tmp
      read bidon bidon bidon bidon tim temp bidon < /root/toto.tmp
      echo "Decimal readout time: " $tim
-     echo "Decimal readout time: " $tim >> /var/www/html/data/$y/$mo/cosqm.log
+     echo "Int time: " $tim >> /var/www/html/data/$y/$mo/cosqm.log
      # default wait time set to the acquisition time with the red filter
      echo $tim | sed 's/\./ /g'  > /root/toto.tmp
      read tim timd toto < /root/toto.tmp
@@ -76,7 +76,7 @@ findSQM () {
 #
     echo "================================="
     echo "Searching for the clear filter..."
-    echo "Searching for the clear filter..." >> /var/www/html/data/$y/$mo/cosqm.log
+    echo "Search clear" >> /var/www/html/data/$y/$mo/cosqm.log
     maxbright=99999
     maxgrightpos=0
     nmoy=9    # number of scan to average for a better retreival of the clear filter
@@ -89,7 +89,7 @@ findSQM () {
     let moy[4]=0
     while [ $nn -le $nmoy ]
     do echo "Finding clear filter...  SCAn # " $nn
-       echo "Finding clear filter...  SCAn # " $nn >> /var/www/html/data/$y/$mo/cosqm.log
+       echo "Find clear, SCAn # " $nn >> /var/www/html/data/$y/$mo/cosqm.log
        n=0
        while [ $n -le ${#filters[*]} ]
        do filter=${filters[$n]}
@@ -97,7 +97,6 @@ findSQM () {
           let ang=destina-pos
           # moving filter wheel
           echo "Moving the filter wheel to filter position " $n
-          echo "Moving the filter wheel to filter position " $n >> /var/www/html/data/$y/$mo/cosqm.log
           let pos=pos+ang
           /usr/local/bin/MoveStepFilterWheel.py $ang 0  
           echo "Reading sqm at position: " $n
@@ -161,7 +160,7 @@ findSQM () {
 center () {
     echo "======================================"
     echo "Searching for nearest filter center..."
-    echo "Searching for nearest filter center..."  >> /var/www/html/data/$y/$mo/cosqm.log
+    echo "Search filter center..."  >> /var/www/html/data/$y/$mo/cosqm.log
      npeak=0
      findIntegration
      let newstep=maxstep/5/movestep+1   # move before the preceeding peak
@@ -242,7 +241,7 @@ globalpos () {
           let alt=0
      fi 
      /bin/echo "GPS gives Latitude:" $lat ", Longitude:" $lon "and Altitude:" $alt
-     /bin/echo "GPS gives Latitude:" $lat ", Longitude:" $lon "and Altitude:" $alt  >> /var/www/html/data/$y/$mo/cosqm.log
+     /bin/echo "Lat.:" $lat ", Lon.:" $lon " Alt.:" $alt  >> /var/www/html/data/$y/$mo/cosqm.log
      # set computer time
      # pkill ntpd
      #sleep 2
@@ -304,7 +303,7 @@ do    y=`date +%Y`
       while [ $meas -le $minim ] && [ $scandone -eq 0 ]   # too bright it is daytime
       do findIntBrightness
 	 echo "Brightness = " $meas "Wait 1 min until twilight ("$minim"<(SBx100))"
-         echo "Brightness = " $meas "Wait 1 min until twilight ("$minim"<(SBx100))" >> /var/www/html/data/$y/$mo/cosqm.log
+         echo "BrightLev= " $meas >> /var/www/html/data/$y/$mo/cosqm.log
          scandone=0
 	 sleep 60
       done
@@ -323,13 +322,13 @@ do    y=`date +%Y`
       #
       if [ $gpsf -eq 1 ] 
       then echo "GPS mode activated"
-           echo "GPS mode activated" >> /var/www/html/data/$y/$mo/cosqm.log
+#           echo "GPS mode activated" >> /var/www/html/data/$y/$mo/cosqm.log
            if [ `ls /dev | grep $gpsport`  ] 
            then echo "GPS look present."
-                echo "GPS look present." >> /var/www/html/data/$y/$mo/cosqm.log
+#                echo "GPS look present." >> /var/www/html/data/$y/$mo/cosqm.log
                 globalpos
            else /bin/echo "GPS not present: using coords. from localconfig"
-                /bin/echo "GPS not present: using coords. from localconfig" >> /var/www/html/data/$y/$mo/cosqm.log
+                /bin/echo "GPS not present" >> /var/www/html/data/$y/$mo/cosqm.log
                 #
                 #  reading longitude and latitude from localconfig
                 #
@@ -342,7 +341,7 @@ do    y=`date +%Y`
                      read bidon alt bidon < /root/ligne.tmp
                 else 
                      echo "Please put something in /home/sand/localconfig and restart observe-sqm-stepper.bash."
-                     echo "Please put something in /home/sand/localconfig and restart observe-sqm-stepper.bash." >> /var/www/html/data/$y/$mo/cosqm.log
+#                     echo "Please put something in /home/sand/localconfig and restart observe-sqm-stepper.bash." >> /var/www/html/data/$y/$mo/cosqm.log
                 fi
            fi
       else echo "GPS mode off"
@@ -355,7 +354,7 @@ do    y=`date +%Y`
                  let count=count+1
                  echo "=========================="
                  echo "Start measurement #" $count
-                 echo "Start measurement #" $count >> /var/www/html/data/$y/$mo/cosqm.log
+                 echo "Meas #" $count >> /var/www/html/data/$y/$mo/cosqm.log
                  if [  $nobs != 9999 ] 
                  then let i=i+1 #   never ending loop
                  fi
@@ -366,11 +365,9 @@ do    y=`date +%Y`
                     let ang=destina-pos
                     # moving filter wheel
                     echo "Moving the filter wheel to filter " $n "("${fname[$n]}")"
-                    echo "Moving the filter wheel to filter " $n "("${fname[$n]}")" >> /var/www/html/data/$y/$mo/cosqm.log
                     let pos=pos+ang
                     /usr/local/bin/MoveStepFilterWheel.py $ang 0  
                     echo "Reading sqm, Filter: " $n
-                    echo "Reading sqm, Filter: " $n >> /var/www/html/data/$y/$mo/cosqm.log
                     /bin/sleep $waittime  # let enough time to be sure that the reading comes from
  	            # that filter
                     /bin/sleep 5.0
@@ -382,7 +379,7 @@ do    y=`date +%Y`
                     sqmread[$n]=`/bin/echo $sb"+"${calib[$n]} |/usr/bin/bc -l`
                     sqmreads[$n]=`printf "%0.2f\n" ${sqmread[$n]}`
                     echo "Sky brightness in band " $n " = " ${sqmreads[$n]}
-                    echo "Sky brightness in band " $n " = " ${sqmreads[$n]} >> /var/www/html/data/$y/$mo/cosqm.log
+                    echo "Bright " $n " = " ${sqmreads[$n]} >> /var/www/html/data/$y/$mo/cosqm.log
                     # convert mag par sq arc second to flux
                     # convert mpsas to W cm-2 sr-1
                     # Sanchez de Miguel, A., M. Aube, Jaime Zamorano, M. Kocifaj, J. Roby, and C. Tapia. 
@@ -392,7 +389,6 @@ do    y=`date +%Y`
                     sbcal[$n]=`/bin/echo "270.0038*e((-0.4*"${sqmread[$n]}")*l(10))" |/usr/bin/bc -l`
                     sbcals[$n]=`printf "%0.6e\n" ${sbcal[$n]}`
                     echo "Flux in band " $n " = "${sbcals[$n]}
-                    echo "Flux in band " $n " = "${sbcals[$n]} >> /var/www/html/data/$y/$mo/cosqm.log
                     let n=n+1
                  done
                  # goto the red filter to protect the sqm lens
@@ -400,7 +396,7 @@ do    y=`date +%Y`
                  let ang=destina-pos
                  # moving filter wheel
                  echo "Moving the filter wheel to filter 1 ("${fname[1]}")"
-                 echo "Moving the filter wheel to filter 1 ("${fname[1]}")" >> /var/www/html/data/$y/$mo/cosqm.log
+                 echo "Moving to "${fname[1]} >> /var/www/html/data/$y/$mo/cosqm.log
                  let pos=pos+ang
                  /usr/local/bin/MoveStepFilterWheel.py $ang 0      
                  nomfich=`date -u +"%Y-%m-%d"`
@@ -422,7 +418,7 @@ do    y=`date +%Y`
       let idle=150-time2+time1  # one measurement every 2.5 min
       if [ $idle -lt 0 ] ; then let idle=0; fi
       echo "Wait " $idle "s before next reading."
-      echo "Wait " $idle "s before next reading." >> /var/www/html/data/$y/$mo/cosqm.log
+      echo "Wait " $idle "s" >> /var/www/html/data/$y/$mo/cosqm.log
       /bin/sleep $idle
       time1=`date +%s`
 done
