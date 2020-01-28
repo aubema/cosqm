@@ -64,7 +64,7 @@ findIntegration () {
      # default wait time set to the acquisition time with the red filter
      echo $tim | sed 's/\./ /g'  > /root/toto.tmp
      read tim timd toto < /root/toto.tmp
-     echo $tim | sed 's/000//g'  > /root/toto.tmp
+     echo $tim | sed 's/000//g' | sed 's/00//g' > /root/toto.tmp
      read tim toto < /root/toto.tmp
      waittime=$tim"."$timd
 }
