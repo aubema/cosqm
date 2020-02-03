@@ -79,7 +79,7 @@ findSQM () {
     echo "Search clear" >> /var/www/html/data/$y/$mo/cosqm.log
     maxbright=99999
     maxgrightpos=0
-    nmoy=9    # number of scan to average for a better retreival of the clear filter
+    nmoy=1    # number of scan to average for a better retreival of the clear filter
     findIntegration
     nn=0
     let moy[0]=0
@@ -87,7 +87,7 @@ findSQM () {
     let moy[2]=0
     let moy[3]=0
     let moy[4]=0
-    while [ $nn -le $nmoy ]
+    while [ $nn -lt $nmoy ]
     do echo "Finding clear filter...  SCAn # " $nn
        echo "Find clear, SCAn # " $nn >> /var/www/html/data/$y/$mo/cosqm.log
        n=0
@@ -98,7 +98,9 @@ findSQM () {
           # moving filter wheel
           echo "Moving the filter wheel to filter position " $n
           let pos=pos+ang
-          /usr/local/bin/MoveStepFilterWheel.py $ang 0  
+          sh -c 'echo "1" > /sys/class/gpio/gpio18/value'
+          /usr/local/bin/MoveStepFilterWheel.py $ang 0
+          sh -c 'echo "0" > /sys/class/gpio/gpio18/value'
           echo "Reading sqm at position: " $n
           echo "Reading sqm at position: " $n >> /var/www/html/data/$y/$mo/cosqm.log
           /bin/sleep $waittime  # let enough time to be sure that the reading comes from that filter
@@ -169,7 +171,9 @@ center () {
      echo -e "Iter \t\t Pos \t\t SB"
      echo -e "Iter \t\t Pos \t\t SB"  >> /var/www/html/data/$y/$mo/cosqm.log
      while [ $n -le $newstep ]
-     do /usr/local/bin/MoveStepFilterWheel.py $movestep 0
+     do sh -c 'echo "1" > /sys/class/gpio/gpio18/value'
+        /usr/local/bin/MoveStepFilterWheel.py $movestep 0
+        sh -c 'echo "0" > /sys/class/gpio/gpio18/value'
 	findIntBrightness
 	echo -e $n "\t\t" $pos "\t\t" $meas
         echo -e $n "\t\t" $pos "\t\t" $meas >> /var/www/html/data/$y/$mo/cosqm.log
@@ -223,11 +227,8 @@ globalpos () {
 #     /bin/echo "Waiting 10 sec for GPS reading..."
 #     sleep 10
 # light up the led during the gps search
-     echo "1" > /sys/class/gpio/gpio18/value
+     sh -c 'echo "1" > /sys/class/gpio/gpio18/value'
      /usr/bin/gpspipe -w -n 10 > /root/coords.tmp &
-     sleep 1
-     # led off
-     echo "0" > /sys/class/gpio/gpio18/value     
      killall -s SIGINT gpspipe 
      /usr/bin/tail -2 /root/coords.tmp | sed 's/,/\n/g' | sed 's/"//g' | sed 's/:/ /g'> /root/bidon.tmp
      grep lat /root/bidon.tmp > /root/bidon1.tmp
@@ -252,6 +253,8 @@ globalpos () {
      echo $gpsdate >> /root/datedugps
      #date -s "$gpsdate"
      #/usr/sbin/ntpd
+     # led off
+     sh -c 'echo "0" > /sys/class/gpio/gpio18/value' 
 }
 
 
@@ -296,9 +299,16 @@ sleep 10  # let 10 second to the gps to cleanly startup
 read bidon NAME bidon < /root/ligne.tmp
 #setting led parameters
 #   Exports pin to userspace
-echo "18" > /sys/class/gpio/export                  
+if [ ! -e /sys/class/gpio/gpio18 ]; then
+	sh -c 'echo "18" > /sys/class/gpio/export'
+fi               
 # Sets pin 18 as an output
-echo "out" > /sys/class/gpio/gpio18/direction
+if [ ! -e /sys/class/gpio/export/18/direction ]; then
+	sh -c 'echo "out" > /sys/class/gpio/gpio18/direction'
+fi
+sh -c 'echo "1" > /sys/class/gpio/gpio18/value'
+sleep 2
+sh -c 'echo "0" > /sys/class/gpio/gpio18/value'
 #
 # main loop
 #
@@ -315,18 +325,18 @@ do    y=`date +%Y`
          echo "BrightLev= " $meas >> /var/www/html/data/$y/$mo/cosqm.log
          scandone=0
 # blink the led to indicate that the cosqm is waiting for the twilight
-         echo "1" > /sys/class/gpio/gpio18/value
-         sleep 2
-         echo "0" > /sys/class/gpio/gpio18/value
-         sleep 18         
-         echo "1" > /sys/class/gpio/gpio18/value
-         sleep 2
-         echo "0" > /sys/class/gpio/gpio18/value
-         sleep 18
-         echo "1" > /sys/class/gpio/gpio18/value
-         sleep 2
-         echo "0" > /sys/class/gpio/gpio18/value
-         sleep 18         
+         sh -c 'echo "1" > /sys/class/gpio/gpio18/value'
+         sleep 19
+         sh -c 'echo "0" > /sys/class/gpio/gpio18/value'
+         sleep 1         
+         sh -c 'echo "1" > /sys/class/gpio/gpio18/value'
+         sleep 19
+         sh -c 'echo "0" > /sys/class/gpio/gpio18/value'
+         sleep 1
+         sh -c 'echo "1" > /sys/class/gpio/gpio18/value'
+         sleep 19
+         sh -c 'echo "0" > /sys/class/gpio/gpio18/value'
+         sleep 1         
 #	 sleep 60
       done
       if [ $scandone -eq 0 ]                                    # filter scan not yet done today
@@ -369,9 +379,49 @@ do    y=`date +%Y`
       else echo "GPS mode off"
            echo "GPS mode off" >> /var/www/html/data/$y/$mo/cosqm.log
       fi
-      sleep 10
       if [ $scandone -eq 1 ]
-      then  findIntBrightness
+      then  # flash 10 times the LED to indicate that the measurement sequence is beginning
+            sh -c 'echo "1" > /sys/class/gpio/gpio18/value'
+            sleep 0.25
+            sh -c 'echo "0" > /sys/class/gpio/gpio18/value'
+            sleep 0.25
+            sh -c 'echo "1" > /sys/class/gpio/gpio18/value'
+            sleep 0.25
+            sh -c 'echo "0" > /sys/class/gpio/gpio18/value'
+            sleep 0.25
+            sh -c 'echo "1" > /sys/class/gpio/gpio18/value'
+            sleep 0.25
+            sh -c 'echo "0" > /sys/class/gpio/gpio18/value'
+            sleep 0.25
+            sh -c 'echo "1" > /sys/class/gpio/gpio18/value'
+            sleep 0.25
+            sh -c 'echo "0" > /sys/class/gpio/gpio18/value'
+            sleep 0.25
+            sh -c 'echo "1" > /sys/class/gpio/gpio18/value'
+            sleep 0.25
+            sh -c 'echo "0" > /sys/class/gpio/gpio18/value'
+            sleep 0.25
+            sh -c 'echo "1" > /sys/class/gpio/gpio18/value'
+            sleep 0.25
+            sh -c 'echo "0" > /sys/class/gpio/gpio18/value'
+            sleep 0.25
+            sh -c 'echo "1" > /sys/class/gpio/gpio18/value'
+            sleep 0.25
+            sh -c 'echo "0" > /sys/class/gpio/gpio18/value'
+            sleep 0.25
+            sh -c 'echo "1" > /sys/class/gpio/gpio18/value'
+            sleep 0.25
+            sh -c 'echo "0" > /sys/class/gpio/gpio18/value'
+            sleep 0.25
+            sh -c 'echo "1" > /sys/class/gpio/gpio18/value'
+            sleep 0.25
+            sh -c 'echo "0" > /sys/class/gpio/gpio18/value'
+            sleep 0.25
+            sh -c 'echo "1" > /sys/class/gpio/gpio18/value'
+            sleep 0.25
+            sh -c 'echo "0" > /sys/class/gpio/gpio18/value'
+            sleep 10
+            findIntBrightness
             if [ $meas -gt $minim ]    # too bright it is daytime
             then recentime=0
                  let count=count+1
@@ -415,9 +465,18 @@ do    y=`date +%Y`
                     let n=n+1
                  done
                  # short blink of the led after measurement sequence
-                 echo "1" > /sys/class/gpio/gpio18/value
-                 sleep 0.5
-                 echo "0" > /sys/class/gpio/gpio18/value
+                 sh -c 'echo "1" > /sys/class/gpio/gpio18/value'
+                 sleep 0.25
+                 sh -c 'echo "0" > /sys/class/gpio/gpio18/value'
+                 sleep 0.25
+                 sh -c 'echo "1" > /sys/class/gpio/gpio18/value'
+                 sleep 0.25
+                 sh -c 'echo "0" > /sys/class/gpio/gpio18/value'
+                 sleep 0.25
+                 sh -c 'echo "1" > /sys/class/gpio/gpio18/value'
+                 sleep 0.25
+                 sh -c 'echo "0" > /sys/class/gpio/gpio18/value'
+                 sleep 0.25
                  # goto the red filter to protect the sqm lens
                  destina=${filterpos[1]}
                  let ang=destina-pos
