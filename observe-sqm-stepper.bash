@@ -226,8 +226,6 @@ globalpos () {
 #
 #     /bin/echo "Waiting 10 sec for GPS reading..."
 #     sleep 10
-# light up the led during the gps search
-     sh -c 'echo "1" > /sys/class/gpio/gpio18/value'
      /usr/bin/gpspipe -w -n 10 > /root/coords.tmp &
      killall -s SIGINT gpspipe 
      /usr/bin/tail -2 /root/coords.tmp | sed 's/,/\n/g' | sed 's/"//g' | sed 's/:/ /g'> /root/bidon.tmp
@@ -253,8 +251,6 @@ globalpos () {
      echo $gpsdate >> /root/datedugps
      #date -s "$gpsdate"
      #/usr/sbin/ntpd
-     # led off
-     sh -c 'echo "0" > /sys/class/gpio/gpio18/value' 
 }
 
 
