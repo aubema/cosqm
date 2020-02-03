@@ -222,8 +222,12 @@ globalpos () {
 #
 #     /bin/echo "Waiting 10 sec for GPS reading..."
 #     sleep 10
+# light up the led during the gps search
+     echo "1" > /sys/class/gpio/gpio18/value
      /usr/bin/gpspipe -w -n 10 > /root/coords.tmp &
      sleep 1
+     # led off
+     echo "0" > /sys/class/gpio/gpio18/value     
      killall -s SIGINT gpspipe 
      /usr/bin/tail -2 /root/coords.tmp | sed 's/,/\n/g' | sed 's/"//g' | sed 's/:/ /g'> /root/bidon.tmp
      grep lat /root/bidon.tmp > /root/bidon1.tmp
@@ -247,7 +251,7 @@ globalpos () {
      #sleep 2
      echo $gpsdate >> /root/datedugps
      #date -s "$gpsdate"
-     #/usr/sbin/ntpd   
+     #/usr/sbin/ntpd
 }
 
 
@@ -290,6 +294,11 @@ let movestep=maxstep/128
 sleep 10  # let 10 second to the gps to cleanly startup
 /bin/grep "Site_name" /home/sand/localconfig > /root/ligne.tmp
 read bidon NAME bidon < /root/ligne.tmp
+#setting led parameters
+#   Exports pin to userspace
+echo "18" > /sys/class/gpio/export                  
+# Sets pin 18 as an output
+echo "out" > /sys/class/gpio/gpio18/direction
 #
 # main loop
 #
@@ -305,7 +314,20 @@ do    y=`date +%Y`
 	 echo "Brightness = " $meas "Wait 1 min until twilight ("$minim"<(SBx100))"
          echo "BrightLev= " $meas >> /var/www/html/data/$y/$mo/cosqm.log
          scandone=0
-	 sleep 60
+# blink the led to indicate that the cosqm is waiting for the twilight
+         echo "1" > /sys/class/gpio/gpio18/value
+         sleep 2
+         echo "0" > /sys/class/gpio/gpio18/value
+         sleep 18         
+         echo "1" > /sys/class/gpio/gpio18/value
+         sleep 2
+         echo "0" > /sys/class/gpio/gpio18/value
+         sleep 18
+         echo "1" > /sys/class/gpio/gpio18/value
+         sleep 2
+         echo "0" > /sys/class/gpio/gpio18/value
+         sleep 18         
+#	 sleep 60
       done
       if [ $scandone -eq 0 ]                                    # filter scan not yet done today
       then echo "Brightness = " $meas
@@ -347,6 +369,7 @@ do    y=`date +%Y`
       else echo "GPS mode off"
            echo "GPS mode off" >> /var/www/html/data/$y/$mo/cosqm.log
       fi
+      sleep 10
       if [ $scandone -eq 1 ]
       then  findIntBrightness
             if [ $meas -gt $minim ]    # too bright it is daytime
@@ -391,6 +414,10 @@ do    y=`date +%Y`
                     echo "Flux in band " $n " = "${sbcals[$n]}
                     let n=n+1
                  done
+                 # short blink of the led after measurement sequence
+                 echo "1" > /sys/class/gpio/gpio18/value
+                 sleep 0.5
+                 echo "0" > /sys/class/gpio/gpio18/value
                  # goto the red filter to protect the sqm lens
                  destina=${filterpos[1]}
                  let ang=destina-pos
