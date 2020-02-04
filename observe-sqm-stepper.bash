@@ -79,7 +79,7 @@ findSQM () {
     echo "Search clear" >> /var/www/html/data/$y/$mo/cosqm.log
     maxbright=99999
     maxgrightpos=0
-    nmoy=1    # number of scan to average for a better retreival of the clear filter
+    nmoy=5    # number of scan to average for a better retreival of the clear filter
     findIntegration
     nn=0
     let moy[0]=0
@@ -87,7 +87,7 @@ findSQM () {
     let moy[2]=0
     let moy[3]=0
     let moy[4]=0
-    while [ $nn -lt $nmoy ]
+    while [ $nn -le $nmoy ]
     do echo "Finding clear filter...  SCAn # " $nn
        echo "Find clear, SCAn # " $nn >> /var/www/html/data/$y/$mo/cosqm.log
        n=0
@@ -160,61 +160,65 @@ findSQM () {
 #######
 # filter center
 center () {
-    echo "======================================"
+    pos=0
+    nmoy=3
+    nn=0
+    let meanpeak=0
+    let newstep=maxstep/5/movestep+1   # move before the preceeding peak
     echo "Searching for nearest filter center..."
     echo "Search filter center..."  >> /var/www/html/data/$y/$mo/cosqm.log
-     npeak=0
-     findIntegration
-     let newstep=maxstep/5/movestep+1   # move before the preceeding peak
-     let n=0
-     let memoi=0
-     echo -e "Iter \t\t Pos \t\t SB"
-     echo -e "Iter \t\t Pos \t\t SB"  >> /var/www/html/data/$y/$mo/cosqm.log
-     while [ $n -le $newstep ]
-     do sh -c 'echo "1" > /sys/class/gpio/gpio18/value'
-        /usr/local/bin/MoveStepFilterWheel.py $movestep 0
-        sh -c 'echo "0" > /sys/class/gpio/gpio18/value'
-	findIntBrightness
-	echo -e $n "\t\t" $pos "\t\t" $meas
-        echo -e $n "\t\t" $pos "\t\t" $meas >> /var/www/html/data/$y/$mo/cosqm.log
-	if [ $meas -gt $memoi ]
-        then let memoi=meas
-             let pospeak=pos
-	     let npeak=n
-        fi
-	let pos=pos+movestep
-        let n=n+1
-     done
-     # add 1/10 of the total tics to find the center of the filter
-     let possqm=pospeak+maxstep/10
-     if [ $possqm -gt $maxstep ] 
-     then let possqm=possqm-maxstep-1
-     fi
-     if [ $possqm -lt -$maxstep ] 
-     then let possqm=possqm+maxstep+1
-     fi
-     # set filters position array
-     let filterpos[0]=possqm
-     let filterpos[1]=possqm+maxstep/5
-     if [ ${filterpos[1]} -gt $maxstep ]
-     then let filterpos[1]=filterpos[1]-maxstep
-     fi
-     let filterpos[2]=possqm+2*maxstep/5
-     if [ ${filterpos[2]} -gt $maxstep ]
-     then let filterpos[2]=filterpos[2]-maxstep
-     fi
-     let filterpos[3]=possqm+3*maxstep/5
-     if [ ${filterpos[3]} -gt $maxstep ]
-     then let filterpos[3]=filterpos[3]-maxstep
-     fi
-     let filterpos[4]=possqm+4*maxstep/5
-     if [ ${filterpos[4]} -gt $maxstep ]
-     then let filterpos[4]=filterpos[4]-maxstep
-     fi
-     let filterpos[5]=possqm+5*maxstep/5
-     if [ ${filterpos[5]} -gt $maxstep ]
-     then let filterpos[5]=filterpos[5]-maxstep
-     fi     
+       npeak=0
+       findIntegration
+       let n=0
+       let memoi=0
+       echo -e "Iter \t\t Pos \t\t SB"
+       echo -e "Iter \t\t Pos \t\t SB"  >> /var/www/html/data/$y/$mo/cosqm.log
+       while [ $n -le $newstep ]
+       do findIntBrightness
+	  echo -e $n "\t\t" $pos "\t\t" $meas
+          echo -e $n "\t\t" $pos "\t\t" $meas >> /var/www/html/data/$y/$mo/cosqm.log
+	  if [ $meas -gt $memoi ]
+          then let memoi=meas
+               let pospeak=pos
+	       let npeak=n
+          fi
+          sh -c 'echo "1" > /sys/class/gpio/gpio18/value'
+          /usr/local/bin/MoveStepFilterWheel.py $movestep 0
+	  let pos=pos+movestep
+          sh -c 'echo "0" > /sys/class/gpio/gpio18/value'
+          let n=n+1
+       done
+
+    # add 1/10 of the total tics to find the center of the filter
+    let possqm=pospeak+maxstep/10
+    if [ $possqm -gt $maxstep ] 
+    then let possqm=possqm-maxstep-1
+    fi
+    if [ $possqm -lt -$maxstep ] 
+    then let possqm=possqm+maxstep+1
+    fi
+    # set filters position array
+    let filterpos[0]=possqm
+    let filterpos[1]=possqm+maxstep/5
+    if [ ${filterpos[1]} -gt $maxstep ]
+    then let filterpos[1]=filterpos[1]-maxstep
+    fi
+    let filterpos[2]=possqm+2*maxstep/5
+    if [ ${filterpos[2]} -gt $maxstep ]
+    then let filterpos[2]=filterpos[2]-maxstep
+    fi
+    let filterpos[3]=possqm+3*maxstep/5
+    if [ ${filterpos[3]} -gt $maxstep ]
+    then let filterpos[3]=filterpos[3]-maxstep
+    fi
+    let filterpos[4]=possqm+4*maxstep/5
+    if [ ${filterpos[4]} -gt $maxstep ]
+    then let filterpos[4]=filterpos[4]-maxstep
+    fi
+    let filterpos[5]=possqm+5*maxstep/5
+    if [ ${filterpos[5]} -gt $maxstep ]
+    then let filterpos[5]=filterpos[5]-maxstep
+    fi
 }
 
 
