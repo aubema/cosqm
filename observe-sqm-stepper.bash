@@ -160,14 +160,84 @@ findSQM () {
 #######
 # filter center
 center () {
-    pos=0
-    nmoy=3
-    nn=0
-    let meanpeak=0
-    let newstep=maxstep/5/movestep+1   # move before the preceeding peak
+    
+    mes0=99999
+    # approximate position of the clear
+    let ang=maxstep/10
+    findIntegration
+    findIntBrightness
+    let pos0=pos
+    let mes0=meas
+    /usr/local/bin/MoveStepFilterWheel.py $ang 0
+    let pos=pos+ang
+    findIntBrightness
+    if [ $meas -lt $mes0 ]
+    then let pos0=pos
+         let mes0=meas
+    fi
+    /usr/local/bin/MoveStepFilterWheel.py $ang 0
+    let pos=pos+ang
+    findIntBrightness
+    if [ $meas -lt $mes0 ]
+    then let pos0=pos
+         let mes0=meas
+    fi
+    /usr/local/bin/MoveStepFilterWheel.py $ang 0
+    let pos=pos+ang
+    findIntBrightness
+    if [ $meas -lt $mes0 ]
+    then let pos0=pos
+         let mes0=meas
+    fi
+    /usr/local/bin/MoveStepFilterWheel.py $ang 0
+    let pos=pos+ang
+    findIntBrightness
+    if [ $meas -lt $mes0 ]
+    then let pos0=pos
+         let mes0=meas
+    fi
+    /usr/local/bin/MoveStepFilterWheel.py $ang 0
+    let pos=pos+ang
+    findIntBrightness
+    if [ $meas -lt $mes0 ]
+    then let pos0=pos
+         let mes0=meas
+    fi
+    /usr/local/bin/MoveStepFilterWheel.py $ang 0
+    let pos=pos+ang
+    findIntBrightness
+    if [ $meas -lt $mes0 ]
+    then let pos0=pos
+         let mes0=meas
+    fi
+    /usr/local/bin/MoveStepFilterWheel.py $ang 0
+    let pos=pos+ang
+    findIntBrightness
+    if [ $meas -lt $mes0 ]
+    then let pos0=pos
+         let mes0=meas
+    fi
+    /usr/local/bin/MoveStepFilterWheel.py $ang 0
+    let pos=pos+ang
+    findIntBrightness
+    if [ $meas -lt $mes0 ]
+    then let pos0=pos
+         let mes0=meas
+    fi
+
+
+# goto approx clear
+let ang=pos0-pos
+/usr/local/bin/MoveStepFilterWheel.py $ang 0
+let pos=pos+ang
+
+    let newstep=maxstep/5/movestep+1
+    let ang=maxstep/2-maxstep/10
+    /usr/local/bin/MoveStepFilterWheel.py $ang 0
+    let pos=pos+ang
+
     echo "Searching for nearest filter center..."
     echo "Search filter center..."  >> /var/www/html/data/$y/$mo/cosqm.log
-       npeak=0
        findIntegration
        let n=0
        let memoi=0
@@ -180,7 +250,6 @@ center () {
 	  if [ $meas -gt $memoi ]
           then let memoi=meas
                let pospeak=pos
-	       let npeak=n
           fi
           sh -c 'echo "1" > /sys/class/gpio/gpio18/value'
           /usr/local/bin/MoveStepFilterWheel.py $movestep 0
@@ -188,6 +257,8 @@ center () {
           sh -c 'echo "0" > /sys/class/gpio/gpio18/value'
           let n=n+1
        done
+echo "peak 1=" $pospeak
+echo "newstep" $newstep $pospeak $pos
 
     # add 1/10 of the total tics to find the center of the filter
     let possqm=pospeak+maxstep/10
