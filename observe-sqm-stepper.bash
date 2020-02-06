@@ -304,9 +304,10 @@ globalpos () {
      rm -f /home/sand/*.tmp
      sh -c '/usr/bin/gpspipe -w -n 10 > /home/sand/coords.tmp &'
      killall -s SIGINT gpspipe 
-     tail /home/sand/coords.tmp
      var=$(/usr/bin/tail -2 /home/sand/coords.tmp | sed -e 's/,/\n/g' | sed -e 's/"//g' | sed -e 's/:/ /g' | grep lat)
      lat=$(echo $var|/usr/bin/awk '{print $2}')
+     echo $var > /home/sand/toto.tmp
+     read bidon lat bidon
      var=$(/usr/bin/tail -2 /home/sand/coords.tmp | sed -e 's/,/\n/g' | sed -e 's/"//g' | sed -e 's/:/ /g' | grep lon)
      lon=$(echo $var|/usr/bin/awk '{print $2}')
      var=$(/usr/bin/tail -2 /home/sand/coords.tmp | sed -e 's/,/\n/g' | sed -e 's/"//g' | sed -e 's/:/ /g' | grep alt)
