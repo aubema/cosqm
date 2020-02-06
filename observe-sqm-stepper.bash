@@ -305,7 +305,7 @@ globalpos () {
      bash -c '/usr/bin/gpspipe -w -n 10 | sed -e 's/,/\n/g' | grep lat | head -1 | sed "s/n\"/ /g" |sed -e "s/\"/ /g" | sed -e "s/:/ /g" | sed -e "s/,/\n/g" > /home/sand/coords.tmp &'
      sleep 1
      lat=$(cat /home/sand/coords.tmp  | /usr/bin/awk '{print $17}' | sed -e "s/n//g")
-
+     read bidon bidon bidon bidon bidon bidon bidon bidon bidon bidon date heure minute seconde bidon bidon bidon lat bidon bidon lon bidon alt bidon < /home/sand/coords.tmp
      echo "lat" $lat
      exit 0
      var=`/usr/bin/tail -2 /home/sand/coords.tmp | sed -e 's/,/\n/g' | sed -e 's/"//g' | sed -e 's/:/ /g' | grep lon`
