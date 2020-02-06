@@ -302,17 +302,11 @@ globalpos () {
 #     /bin/echo "Waiting 10 sec for GPS reading..."
 #     sleep 10
      rm -f /root/*.tmp
-     bash -c '/usr/bin/gpspipe -w -n 10 | sed -e 's/,/\n/g' | grep lat | head -1 | sed "s/n\"/ /g" |sed -e "s/\"/ /g" | sed -e "s/:/ /g" | sed -e "s/,/\n/g" > /root/coords.tmp'
-     sleep 2
-#     lat=$(cat /root/coords.tmp  | /usr/bin/awk '{print $17}' | sed -e "s/n//g")
 
-     var=`/usr/bin/tail -2 /root/coords.tmp | sed -e 's/,/\n/g' | sed -e 's/"//g' | sed -e 's/:/ /g' | grep lon`
-     lon=$(echo $var|/usr/bin/awk '{print $2}')
-          echo $lon $lat "var" $var
-     var=$(/usr/bin/tail -2 /root/coords.tmp | sed -e 's/,/\n/g' | sed -e 's/"//g' | sed -e 's/:/ /g' | grep alt)
-     alt=$(echo $var|/usr/bin/awk '{print $2}')
-     var=$(/usr/bin/tail -2 /root/coords.tmp | sed -e 's/,/\n/g' | sed -e 's/"//g' | sed -e 's/:/ /g' | grep activated)
-     gpsdate=$(echo $var|/usr/bin/awk '{print $2}')    
+
+     bash -c '/usr/bin/gpspipe -w -n 10 | sed -e "s/,/\n/g" | grep lat | tail -1 | sed "s/n\"/ /g" |sed -e "s/\"/ /g" | sed -e "s/:/ /g" | sed -e"s/lat//g" | sed -e "s/ //g" > /home/sand/coords.tmp ; cat /home/sand/coords.tmp'
+     bash -c 'read lat < /home/sand/coords.tmp'
+     
 
      # /bin/echo "GPS is connected, reading lat lon data. Longitude:" $lon
      if [ -z "${lon}" ]
@@ -383,7 +377,7 @@ bash -c 'echo "1" > /sys/class/gpio/gpio18/value'
 sleep 2
 bash -c 'echo "0" > /sys/class/gpio/gpio18/value'
                 globalpos
-                bash -c 'read bidon bidon bidon bidon bidon bidon bidon bidon bidon bidon date minute seconde bidon bidon bidon lat bidon bidon lon bidon alt bidon < /root/coords.tmp'
+                bash -c 'read bidon bidon bidon bidon bidon bidon bidon bidon bidon bidon date minute seconde bidon bidon bidon lat bidon lon bidon alt bidon < /root/coords.tmp'
                 /bin/echo "GPS gives Latitude:" $lat ", Longitude:" $lon "and Altitude:" $alt     
 #
 # main loop
