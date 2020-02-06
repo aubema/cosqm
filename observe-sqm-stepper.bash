@@ -309,9 +309,9 @@ globalpos () {
      var=$(/usr/bin/tail -2 /home/sand/coords.tmp | sed -e 's/,/\n/g' | sed -e 's/"//g' | sed -e 's/:/ /g' | grep lon)
      lon=$(echo $var|awk '{print $2}')
      var=$(/usr/bin/tail -2 /home/sand/coords.tmp | sed -e 's/,/\n/g' | sed -e 's/"//g' | sed -e 's/:/ /g' | grep alt)
-     alt=$(echo $var|awk '{print $2}'
+     alt=$(echo $var|awk '{print $2}')
      var=$(/usr/bin/tail -2 /home/sand/coords.tmp | sed -e 's/,/\n/g' | sed -e 's/"//g' | sed -e 's/:/ /g' | grep activated)
-     gpsdate=$(echo $var|awk '{print $2}'    
+     gpsdate=$(echo $var|awk '{print $2}')    
      # /bin/echo "GPS is connected, reading lat lon data. Longitude:" $lon
      if [ -z "${lon}" ]
      then let lon=0
