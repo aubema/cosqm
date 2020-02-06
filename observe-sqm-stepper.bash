@@ -302,13 +302,11 @@ globalpos () {
 #     /bin/echo "Waiting 10 sec for GPS reading..."
 #     sleep 10
      rm -f /home/sand/*.tmp
-     sh -c '/usr/bin/gpspipe -w -n 10 > /home/sand/coords.tmp &'
+     sh -c '/usr/bin/gpspipe -w -n 10 | sed -e 's/,/\n/g' | grep lat | head -1 | sed -e "s/\"/ /g" | sed -e "s/:/ /g" | sed -e "s/,/\n/g" > /home/sand/coords.tmp &'
      killall -s SIGINT gpspipe
-     var1=$(grep lat /home/sand/coords.tmp | sed -e 's/,/\n/g')
-     echo "var1=" $var1
-     var=$(/usr/bin/tail -2 /home/sand/coords.tmp  | sed -e 's/"//g' | sed -e 's/:/ /g' | sed -e 's/,/\n/g' | grep lat)
-     lat=$(echo $var|/usr/bin/awk '{print $2}')
-     echo $var $lat
+     lat=$(cat /home/sand/coords.tmp |/usr/bin/awk '{print $20}')
+     echo "lat" $lat
+     exit 0
      var=`/usr/bin/tail -2 /home/sand/coords.tmp | sed -e 's/,/\n/g' | sed -e 's/"//g' | sed -e 's/:/ /g' | grep lon`
      lon=$(echo $var|/usr/bin/awk '{print $2}')
           echo $lon $lat "var" $var
