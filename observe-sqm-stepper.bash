@@ -308,7 +308,7 @@ globalpos () {
      lat=$(echo $var|/usr/bin/awk '{print $2}')
      echo $var > /home/sand/toto.tmp
      read bidon lat bidon < /home/sand/toto.tmp
-     var=$(/usr/bin/tail -2 /home/sand/coords.tmp | sed -e 's/,/\n/g' | sed -e 's/"//g' | sed -e 's/:/ /g' | grep lon)
+     var=`/usr/bin/tail -2 /home/sand/coords.tmp | sed -e 's/,/\n/g' | sed -e 's/"//g' | sed -e 's/:/ /g' | grep lon`
      lon=$(echo $var|/usr/bin/awk '{print $2}')
           echo $lon $lat "var" $var
      var=$(/usr/bin/tail -2 /home/sand/coords.tmp | sed -e 's/,/\n/g' | sed -e 's/"//g' | sed -e 's/:/ /g' | grep alt)
