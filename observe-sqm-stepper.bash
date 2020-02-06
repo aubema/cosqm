@@ -25,14 +25,14 @@ findIntBrightness () {
     sleep $waittime
     /usr/local/bin/sqmleread.pl $sqmip 10001 1 > /root/sqmdata.tmp    
     read sqm < /root/sqmdata.tmp
-    echo $sqm | sed 's/,/ /g' | sed 's/m/ /g' | sed 's/\./ /g' > /root/toto.tmp
+    echo $sqm | sed -e 's/,/ /g' | sed -e 's/m/ /g' | sed -e 's/\./ /g' > /root/toto.tmp
     read bidon sqmm sqmd bidon < /root/toto.tmp
     # remove leading zero to the sky brightness
     if [ ${sqmm:0:1} == 0 ]
-    then sqmm=`echo $sqmm | sed 's/0//g'`
+    then sqmm=`echo $sqmm | sed -e 's/0//g'`
     fi
     if [ ${sqmd:0:1} == 0 ]
-    then sqmd=`echo $sqmd | sed 's/0//g'`
+    then sqmd=`echo $sqmd | sed -e 's/0//g'`
     fi
     let meas=sqmm*100+sqmd
 }
@@ -57,14 +57,14 @@ findIntegration () {
      #  The integration time can be calculated with t=2.37E-25*SB**18.98
      /usr/local/bin/sqmleread.pl $sqmip 10001 1 > /root/sqmdata.tmp
      read sqm < /root/sqmdata.tmp
-     echo $sqm | sed 's/,/ /g' | sed 's/s//g' | sed 's/C/ C/g' > /root/toto.tmp
+     echo $sqm | sed -e 's/,/ /g' | sed -e 's/s//g' | sed -e 's/C/ C/g' > /root/toto.tmp
      read bidon bidon bidon bidon tim temp bidon < /root/toto.tmp
      echo "Decimal readout time: " $tim
      echo "Int time: " $tim >> /var/www/html/data/$y/$mo/cosqm.log
      # default wait time set to the acquisition time with the red filter
-     echo $tim | sed 's/\./ /g'  > /root/toto.tmp
+     echo $tim | sed -e 's/\./ /g'  > /root/toto.tmp
      read tim timd toto < /root/toto.tmp
-     echo $tim | sed 's/000//g' | sed 's/00//g' > /root/toto.tmp
+     echo $tim | sed -e 's/000//g' | sed -e 's/00//g' > /root/toto.tmp
      read tim toto < /root/toto.tmp
      waittime=$tim"."$timd
 }
@@ -303,7 +303,7 @@ globalpos () {
 #     sleep 10
      /usr/bin/gpspipe -w -n 10 > /root/coords.tmp &
      killall -s SIGINT gpspipe 
-     /usr/bin/tail -2 /root/coords.tmp | sed 's/,/\n/g' | sed 's/"//g' | sed 's/:/ /g'> /root/bidon.tmp
+     /usr/bin/tail -2 /root/coords.tmp | sed -e 's/,/\n/g' | sed -e 's/"//g' | sed -e 's/:/ /g'> /root/bidon.tmp
      grep lat /root/bidon.tmp > /root/bidon1.tmp
      read bidon lat bidon1 < /root/bidon1.tmp
      grep lon /root/bidon.tmp > /root/bidon1.tmp
@@ -517,7 +517,7 @@ do    y=`date +%Y`
                     /bin/sleep 5.0
 	            /usr/local/bin/sqmleread.pl $sqmip 10001 1 > /root/sqmdata.tmp
                     read sqm < /root/sqmdata.tmp
-                    echo $sqm | sed 's/,/ /g' | sed 's/m//g' > /root/toto.tmp
+                    echo $sqm | sed -e 's/,/ /g' | sed -e 's/m//g' > /root/toto.tmp
                     read bidon sb bidon < /root/toto.tmp
                     # keep the sqm value in mag per square arc second
                     sqmread[$n]=`/bin/echo $sb"+"${calib[$n]} |/usr/bin/bc -l`
