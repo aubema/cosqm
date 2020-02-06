@@ -304,9 +304,10 @@ globalpos () {
      rm -f /root/*.tmp
 
 
-     bash -c '/usr/bin/gpspipe -w -n 10 | sed -e "s/,/\n/g" | grep lat | tail -1 | sed "s/n\"/ /g" |sed -e "s/\"/ /g" | sed -e "s/:/ /g" | sed -e"s/lat//g" | sed -e "s/ //g" > /home/sand/coords.tmp ; cat /home/sand/coords.tmp'
+     bash -c '/usr/bin/gpspipe -w -n 10 | sed -e "s/,/\n/g" | grep lat | tail -1 | sed "s/n\"/ /g" |sed -e "s/\"/ /g" | sed -e "s/:/ /g" | sed -e"s/lat//g" | sed -e "s/ //g" > /home/sand/coords.tmp'
      bash -c 'read lat < /home/sand/coords.tmp'
-     
+     echo $lat
+     exit 0
 
      # /bin/echo "GPS is connected, reading lat lon data. Longitude:" $lon
      if [ -z "${lon}" ]
@@ -429,9 +430,15 @@ do    y=`date +%Y`
            then echo "GPS look present."
 #                echo "GPS look present." >> /var/www/html/data/$y/$mo/cosqm.log
                 globalpos
-                bash -c 'read bidon bidon bidon bidon bidon bidon bidon bidon bidon bidon date minute seconde bidon bidon bidon lat bidon bidon lon bidon alt bidon < /root/coords.tmp'
-     echo "lat0" $lat "lon" $lon "alt" $alt "bidon" $bidon
-     exit 0
+
+                
+                
+                
+                
+                
+                
+                
+                
            else /bin/echo "GPS not present: using coords. from localconfig"
                 /bin/echo "GPS not present" >> /var/www/html/data/$y/$mo/cosqm.log
                 #
