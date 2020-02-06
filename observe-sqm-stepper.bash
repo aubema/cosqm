@@ -374,6 +374,7 @@ sleep 10  # let 10 second to the gps to cleanly startup
 read bidon NAME bidon < /home/sand/ligne.tmp
 #setting led parameters
 #   Exports pin to userspace
+globalpos
 if [ ! -e /sys/class/gpio/gpio18 ]; then
 	sh -c 'echo "18" > /sys/class/gpio/export'
 fi               
