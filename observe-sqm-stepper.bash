@@ -304,15 +304,11 @@ globalpos () {
      rm -f /home/sand/*.tmp
      sh -c '/usr/bin/gpspipe -w -n 10 > /home/sand/coords.tmp &'
      killall -s SIGINT gpspipe 
-     /usr/bin/tail -2 /home/sand/coords.tmp | sed -e 's/,/\n/g' | sed -e 's/"//g' | sed -e 's/:/ /g' > /home/sand/bidon.tmp
-     grep lat /home/sand/bidon.tmp > /home/sand/bidon1.tmp
-     read bidon lat bidon1 < /home/sand/bidon1.tmp
-     grep lon /home/sand/bidon.tmp > /home/sand/bidon1.tmp
-     read bidon lon bidon1 < /home/sand/bidon1.tmp
-     grep alt /home/sand/bidon.tmp > /home/sand/bidon1.tmp
-     read bidon alt bidon1 < /home/sand/bidon1.tmp
-     grep activated /home/sand/bidon.tmp > /home/sand/bidon1.tmp 
-     read bidon gpsdate bidon1 < /home/sand/bidon1.tmp
+     var=$(/usr/bin/tail -2 /home/sand/coords.tmp | sed -e 's/,/\n/g' | sed -e 's/"//g' | sed -e 's/:/ /g' | grep lat) lat=$(echo $var|awk '{print $2}')
+     var=$(/usr/bin/tail -2 /home/sand/coords.tmp | sed -e 's/,/\n/g' | sed -e 's/"//g' | sed -e 's/:/ /g' | grep lon) lon=$(echo $var|awk '{print $2}')
+     var=$(/usr/bin/tail -2 /home/sand/coords.tmp | sed -e 's/,/\n/g' | sed -e 's/"//g' | sed -e 's/:/ /g' | grep alt) alt=$(echo $var|awk '{print $2}'
+     var=$(/usr/bin/tail -2 /home/sand/coords.tmp | sed -e 's/,/\n/g' | sed -e 's/"//g' | sed -e 's/:/ /g' | grep activated)
+     gpsdate=$(echo $var|awk '{print $2}'    
      # /bin/echo "GPS is connected, reading lat lon data. Longitude:" $lon
      if [ -z "${lon}" ]
      then let lon=0
