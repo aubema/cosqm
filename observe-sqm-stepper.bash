@@ -312,6 +312,7 @@ globalpos () {
      alt=$(echo $var|awk '{print $2}')
      var=$(/usr/bin/tail -2 /home/sand/coords.tmp | sed -e 's/,/\n/g' | sed -e 's/"//g' | sed -e 's/:/ /g' | grep activated)
      gpsdate=$(echo $var|awk '{print $2}')    
+     echo $lon $lat
      # /bin/echo "GPS is connected, reading lat lon data. Longitude:" $lon
      if [ -z "${lon}" ]
      then let lon=0
@@ -505,7 +506,7 @@ do    y=`date +%Y`
                  n=0
                  while [ $n -lt ${#filters[*]} ]
                  do filter=${filters[$n]}
-	            destina=${filterpos[$n]}
+	                destina=${filterpos[$n]}
                     let ang=destina-pos
                     # moving filter wheel
                     echo "Moving the filter wheel to filter " $n "("${fname[$n]}")"
