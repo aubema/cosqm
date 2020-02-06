@@ -305,9 +305,7 @@ globalpos () {
      bash -c '/usr/bin/gpspipe -w -n 10 | sed -e 's/,/\n/g' | grep lat | head -1 | sed "s/n\"/ /g" |sed -e "s/\"/ /g" | sed -e "s/:/ /g" | sed -e "s/,/\n/g" > /root/coords.tmp'
      sleep 2
 #     lat=$(cat /root/coords.tmp  | /usr/bin/awk '{print $17}' | sed -e "s/n//g")
-     bash -c 'read bidon bidon bidon bidon bidon bidon bidon bidon bidon bidon date minute seconde bidon bidon bidon lat bidon bidon lon bidon alt bidon < /root/coords.tmp'
-     echo "lat0" $lat "lon" $lon "alt" $alt "bidon" $bidon
-     exit 0
+
      var=`/usr/bin/tail -2 /root/coords.tmp | sed -e 's/,/\n/g' | sed -e 's/"//g' | sed -e 's/:/ /g' | grep lon`
      lon=$(echo $var|/usr/bin/awk '{print $2}')
           echo $lon $lat "var" $var
@@ -374,7 +372,6 @@ sleep 10  # let 10 second to the gps to cleanly startup
 read bidon NAME bidon < /root/ligne.tmp
 #setting led parameters
 #   Exports pin to userspace
-globalpos
 if [ ! -e /sys/class/gpio/gpio18 ]; then
 	bash -c 'echo "18" > /sys/class/gpio/export'
 fi               
@@ -435,6 +432,9 @@ do    y=`date +%Y`
            then echo "GPS look present."
 #                echo "GPS look present." >> /var/www/html/data/$y/$mo/cosqm.log
                 globalpos
+                bash -c 'read bidon bidon bidon bidon bidon bidon bidon bidon bidon bidon date minute seconde bidon bidon bidon lat bidon bidon lon bidon alt bidon < /root/coords.tmp'
+     echo "lat0" $lat "lon" $lon "alt" $alt "bidon" $bidon
+     exit 0
            else /bin/echo "GPS not present: using coords. from localconfig"
                 /bin/echo "GPS not present" >> /var/www/html/data/$y/$mo/cosqm.log
                 #
