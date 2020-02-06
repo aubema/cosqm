@@ -301,7 +301,7 @@ globalpos () {
 #
 #     /bin/echo "Waiting 10 sec for GPS reading..."
 #     sleep 10
-     /usr/bin/gpspipe -w -n 10 > /root/coords.tmp &
+     sh -c '/usr/bin/gpspipe -w -n 10 > /root/coords.tmp &'
      killall -s SIGINT gpspipe 
      /usr/bin/tail -2 /root/coords.tmp | sed -e 's/,/\n/g' | sed -e 's/"//g' | sed -e 's/:/ /g'> /root/bidon.tmp
      grep lat /root/bidon.tmp > /root/bidon1.tmp
