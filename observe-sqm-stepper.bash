@@ -384,6 +384,7 @@ sleep 2
 bash -c 'echo "0" > /sys/class/gpio/gpio18/value'
                 globalpos
                 bash -c 'read bidon bidon bidon bidon bidon bidon bidon bidon bidon bidon date minute seconde bidon bidon bidon lat bidon bidon lon bidon alt bidon < /root/coords.tmp'
+                /bin/echo "GPS gives Latitude:" $lat ", Longitude:" $lon "and Altitude:" $alt     
 #
 # main loop
 #
