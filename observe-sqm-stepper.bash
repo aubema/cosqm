@@ -98,9 +98,9 @@ findSQM () {
           # moving filter wheel
           echo "Moving the filter wheel to filter position " $n
           let pos=pos+ang
-          sh -c 'echo "1" > /sys/class/gpio/gpio18/value'
+          bash -c 'echo "1" > /sys/class/gpio/gpio18/value'
           /usr/local/bin/MoveStepFilterWheel.py $ang 0
-          sh -c 'echo "0" > /sys/class/gpio/gpio18/value'
+          bash -c 'echo "0" > /sys/class/gpio/gpio18/value'
           echo "Reading sqm at position: " $n
           echo "Reading sqm at position: " $n >> /var/www/html/data/$y/$mo/cosqm.log
           /bin/sleep $waittime  # let enough time to be sure that the reading comes from that filter
@@ -251,10 +251,10 @@ let pos=pos+ang
           then let memoi=meas
                let pospeak=pos
           fi
-          sh -c 'echo "1" > /sys/class/gpio/gpio18/value'
+          bash -c 'echo "1" > /sys/class/gpio/gpio18/value'
           /usr/local/bin/MoveStepFilterWheel.py $movestep 0
 	  let pos=pos+movestep
-          sh -c 'echo "0" > /sys/class/gpio/gpio18/value'
+          bash -c 'echo "0" > /sys/class/gpio/gpio18/value'
           let n=n+1
        done
 echo "peak 1=" $pospeak
@@ -302,10 +302,9 @@ globalpos () {
 #     /bin/echo "Waiting 10 sec for GPS reading..."
 #     sleep 10
      rm -f /home/sand/*.tmp
-     sh -c '/usr/bin/gpspipe -w -n 10 | sed -e 's/,/\n/g' | grep lat | head -1 | sed -e "s/\"/ /g" | sed -e "s/:/ /g" | sed -e "s/,/\n/g" > /home/sand/coords.tmp &'
+     bash -c '/usr/bin/gpspipe -w -n 10 | sed -e 's/,/\n/g' | grep lat | head -1 | sed -e "s/\"/ /g" | sed -e "s/:/ /g" | sed -e "s/,/\n/g" > /home/sand/coords.tmp &'
      killall -s SIGINT gpspipe
-     sh -c 'cat /home/sand/coords.tmp | /usr/bin/awk '{print $20}' | sed -e "s/n//g" > /root/lat.tmp'
-     read lat < /root/lat.tmp`
+     bash -c 'lat=$(cat /home/sand/coords.tmp  | /usr/bin/awk '{print $20}' | sed -e "s/n//g")'
      echo "lat" $lat
      exit 0
      var=`/usr/bin/tail -2 /home/sand/coords.tmp | sed -e 's/,/\n/g' | sed -e 's/"//g' | sed -e 's/:/ /g' | grep lon`
@@ -376,15 +375,15 @@ read bidon NAME bidon < /home/sand/ligne.tmp
 #   Exports pin to userspace
 globalpos
 if [ ! -e /sys/class/gpio/gpio18 ]; then
-	sh -c 'echo "18" > /sys/class/gpio/export'
+	bash -c 'echo "18" > /sys/class/gpio/export'
 fi               
 # Sets pin 18 as an output
 if [ ! -e /sys/class/gpio/export/18/direction ]; then
-	sh -c 'echo "out" > /sys/class/gpio/gpio18/direction'
+	bash -c 'echo "out" > /sys/class/gpio/gpio18/direction'
 fi
-sh -c 'echo "1" > /sys/class/gpio/gpio18/value'
+bash -c 'echo "1" > /sys/class/gpio/gpio18/value'
 sleep 2
-sh -c 'echo "0" > /sys/class/gpio/gpio18/value'
+bash -c 'echo "0" > /sys/class/gpio/gpio18/value'
 #
 # main loop
 #
@@ -401,17 +400,17 @@ do    y=`date +%Y`
          echo "BrightLev= " $meas >> /var/www/html/data/$y/$mo/cosqm.log
          scandone=0
 # blink the led to indicate that the cosqm is waiting for the twilight
-         sh -c 'echo "1" > /sys/class/gpio/gpio18/value'
+         bash -c 'echo "1" > /sys/class/gpio/gpio18/value'
          sleep 19
-         sh -c 'echo "0" > /sys/class/gpio/gpio18/value'
+         bash -c 'echo "0" > /sys/class/gpio/gpio18/value'
          sleep 1         
-         sh -c 'echo "1" > /sys/class/gpio/gpio18/value'
+         bash -c 'echo "1" > /sys/class/gpio/gpio18/value'
          sleep 19
-         sh -c 'echo "0" > /sys/class/gpio/gpio18/value'
+         bash -c 'echo "0" > /sys/class/gpio/gpio18/value'
          sleep 1
-         sh -c 'echo "1" > /sys/class/gpio/gpio18/value'
+         bash -c 'echo "1" > /sys/class/gpio/gpio18/value'
          sleep 19
-         sh -c 'echo "0" > /sys/class/gpio/gpio18/value'
+         bash -c 'echo "0" > /sys/class/gpio/gpio18/value'
          sleep 1         
 #	 sleep 60
       done
@@ -457,45 +456,45 @@ do    y=`date +%Y`
       fi
       if [ $scandone -eq 1 ]
       then  # flash 10 times the LED to indicate that the measurement sequence is beginning
-            sh -c 'echo "1" > /sys/class/gpio/gpio18/value'
+            bash -c 'echo "1" > /sys/class/gpio/gpio18/value'
             sleep 0.25
-            sh -c 'echo "0" > /sys/class/gpio/gpio18/value'
+            bash -c 'echo "0" > /sys/class/gpio/gpio18/value'
             sleep 0.25
-            sh -c 'echo "1" > /sys/class/gpio/gpio18/value'
+            bash -c 'echo "1" > /sys/class/gpio/gpio18/value'
             sleep 0.25
-            sh -c 'echo "0" > /sys/class/gpio/gpio18/value'
+            bash -c 'echo "0" > /sys/class/gpio/gpio18/value'
             sleep 0.25
-            sh -c 'echo "1" > /sys/class/gpio/gpio18/value'
+            bash -c 'echo "1" > /sys/class/gpio/gpio18/value'
             sleep 0.25
-            sh -c 'echo "0" > /sys/class/gpio/gpio18/value'
+            bash -c 'echo "0" > /sys/class/gpio/gpio18/value'
             sleep 0.25
-            sh -c 'echo "1" > /sys/class/gpio/gpio18/value'
+            bash -c 'echo "1" > /sys/class/gpio/gpio18/value'
             sleep 0.25
-            sh -c 'echo "0" > /sys/class/gpio/gpio18/value'
+            bash -c 'echo "0" > /sys/class/gpio/gpio18/value'
             sleep 0.25
-            sh -c 'echo "1" > /sys/class/gpio/gpio18/value'
+            bash -c 'echo "1" > /sys/class/gpio/gpio18/value'
             sleep 0.25
-            sh -c 'echo "0" > /sys/class/gpio/gpio18/value'
+            bash -c 'echo "0" > /sys/class/gpio/gpio18/value'
             sleep 0.25
-            sh -c 'echo "1" > /sys/class/gpio/gpio18/value'
+            bash -c 'echo "1" > /sys/class/gpio/gpio18/value'
             sleep 0.25
-            sh -c 'echo "0" > /sys/class/gpio/gpio18/value'
+            bash -c 'echo "0" > /sys/class/gpio/gpio18/value'
             sleep 0.25
-            sh -c 'echo "1" > /sys/class/gpio/gpio18/value'
+            bash -c 'echo "1" > /sys/class/gpio/gpio18/value'
             sleep 0.25
-            sh -c 'echo "0" > /sys/class/gpio/gpio18/value'
+            bash -c 'echo "0" > /sys/class/gpio/gpio18/value'
             sleep 0.25
-            sh -c 'echo "1" > /sys/class/gpio/gpio18/value'
+            bash -c 'echo "1" > /sys/class/gpio/gpio18/value'
             sleep 0.25
-            sh -c 'echo "0" > /sys/class/gpio/gpio18/value'
+            bash -c 'echo "0" > /sys/class/gpio/gpio18/value'
             sleep 0.25
-            sh -c 'echo "1" > /sys/class/gpio/gpio18/value'
+            bash -c 'echo "1" > /sys/class/gpio/gpio18/value'
             sleep 0.25
-            sh -c 'echo "0" > /sys/class/gpio/gpio18/value'
+            bash -c 'echo "0" > /sys/class/gpio/gpio18/value'
             sleep 0.25
-            sh -c 'echo "1" > /sys/class/gpio/gpio18/value'
+            bash -c 'echo "1" > /sys/class/gpio/gpio18/value'
             sleep 0.25
-            sh -c 'echo "0" > /sys/class/gpio/gpio18/value'
+            bash -c 'echo "0" > /sys/class/gpio/gpio18/value'
             sleep 10
             findIntBrightness
             if [ $meas -gt $minim ]    # too bright it is daytime
@@ -541,17 +540,17 @@ do    y=`date +%Y`
                     let n=n+1
                  done
                  # short blink of the led after measurement sequence
-                 sh -c 'echo "1" > /sys/class/gpio/gpio18/value'
+                 bash -c 'echo "1" > /sys/class/gpio/gpio18/value'
                  sleep 0.25
-                 sh -c 'echo "0" > /sys/class/gpio/gpio18/value'
+                 bash -c 'echo "0" > /sys/class/gpio/gpio18/value'
                  sleep 0.25
-                 sh -c 'echo "1" > /sys/class/gpio/gpio18/value'
+                 bash -c 'echo "1" > /sys/class/gpio/gpio18/value'
                  sleep 0.25
-                 sh -c 'echo "0" > /sys/class/gpio/gpio18/value'
+                 bash -c 'echo "0" > /sys/class/gpio/gpio18/value'
                  sleep 0.25
-                 sh -c 'echo "1" > /sys/class/gpio/gpio18/value'
+                 bash -c 'echo "1" > /sys/class/gpio/gpio18/value'
                  sleep 0.25
-                 sh -c 'echo "0" > /sys/class/gpio/gpio18/value'
+                 bash -c 'echo "0" > /sys/class/gpio/gpio18/value'
                  sleep 0.25
                  # goto the red filter to protect the sqm lens
                  destina=${filterpos[1]}
