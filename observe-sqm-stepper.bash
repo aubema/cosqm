@@ -359,7 +359,7 @@ filterpos=( 0 0 0 0 0 )
 possqm=0
 # calib is the magnitude offset for each filter
 fname=(Clear Red Green Blue Yellow)
-grep sqmIP /root/localconfig > /root/toto # sqmIP est le mot cle cherche dans le localconfig 
+grep sqmIP /home/sand/localconfig > /root/toto # sqmIP est le mot cle cherche dans le localconfig 
 read bidon sqmip bidon < /root/toto
 # one complete rotation in half step mode (mode 1) is maxstep=4080 i.e. 1 step = 0.087890625 deg
 # if you use the full step mode (mode 0) then maxstep=2040 is the number of steps i.e. 1 step = 0.17578125
@@ -370,7 +370,7 @@ newstep=0
 tim=0
 let movestep=maxstep/128
 sleep 10  # let 10 second to the gps to cleanly startup
-/bin/grep "Site_name" /root/localconfig > /root/ligne.tmp
+/bin/grep "Site_name" /home/sand/localconfig > /root/ligne.tmp
 read bidon NAME bidon < /root/ligne.tmp
 #setting led parameters
 #   Exports pin to userspace
@@ -440,16 +440,16 @@ do    y=`date +%Y`
                 #
                 #  reading longitude and latitude from localconfig
                 #
-                if [ `grep -c " " /root/localconfig` -ne 0 ]
-                then /bin/grep Longitude /root/localconfig > /root/ligne.tmp
+                if [ `grep -c " " /home/sand/localconfig` -ne 0 ]
+                then /bin/grep Longitude /home/sand/localconfig > /root/ligne.tmp
                      read bidon lon bidon < /root/ligne.tmp
-                     /bin/grep Latitude /root/localconfig > /root/ligne.tmp
+                     /bin/grep Latitude /home/sand/localconfig > /root/ligne.tmp
                      read bidon lat bidon < /root/ligne.tmp
-                     /bin/grep Altitude /root/localconfig > /root/ligne.tmp
+                     /bin/grep Altitude /home/sand/localconfig > /root/ligne.tmp
                      read bidon alt bidon < /root/ligne.tmp
                 else 
-                     echo "Please put something in /root/localconfig and restart observe-sqm-stepper.bash."
-#                     echo "Please put something in /root/localconfig and restart observe-sqm-stepper.bash." >> /var/www/html/data/$y/$mo/cosqm.log
+                     echo "Please put something in /home/sand/localconfig and restart observe-sqm-stepper.bash."
+#                     echo "Please put something in /home/sand/localconfig and restart observe-sqm-stepper.bash." >> /var/www/html/data/$y/$mo/cosqm.log
                 fi
            fi
       else echo "GPS mode off"
