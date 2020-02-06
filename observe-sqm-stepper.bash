@@ -23,10 +23,10 @@
 #
 findIntBrightness () {
     sleep $waittime
-    /usr/local/bin/sqmleread.pl $sqmip 10001 1 > /root/sqmdata.tmp    
-    read sqm < /root/sqmdata.tmp
-    echo $sqm | sed -e 's/,/ /g' | sed -e 's/m/ /g' | sed -e 's/\./ /g' > /root/toto.tmp
-    read bidon sqmm sqmd bidon < /root/toto.tmp
+    /usr/local/bin/sqmleread.pl $sqmip 10001 1 > /home/sand/sqmdata.tmp    
+    read sqm < /home/sand/sqmdata.tmp
+    echo $sqm | sed -e 's/,/ /g' | sed -e 's/m/ /g' | sed -e 's/\./ /g' > /home/sand/toto.tmp
+    read bidon sqmm sqmd bidon < /home/sand/toto.tmp
     # remove leading zero to the sky brightness
     if [ ${sqmm:0:1} == 0 ]
     then sqmm=`echo $sqmm | sed -e 's/0//g'`
@@ -55,17 +55,17 @@ findIntegration () {
      #  24.60 = 54.1s
      #  24.76 = 60s
      #  The integration time can be calculated with t=2.37E-25*SB**18.98
-     /usr/local/bin/sqmleread.pl $sqmip 10001 1 > /root/sqmdata.tmp
-     read sqm < /root/sqmdata.tmp
-     echo $sqm | sed -e 's/,/ /g' | sed -e 's/s//g' | sed -e 's/C/ C/g' > /root/toto.tmp
-     read bidon bidon bidon bidon tim temp bidon < /root/toto.tmp
+     /usr/local/bin/sqmleread.pl $sqmip 10001 1 > /home/sand/sqmdata.tmp
+     read sqm < /home/sand/sqmdata.tmp
+     echo $sqm | sed -e 's/,/ /g' | sed -e 's/s//g' | sed -e 's/C/ C/g' > /home/sand/toto.tmp
+     read bidon bidon bidon bidon tim temp bidon < /home/sand/toto.tmp
      echo "Decimal readout time: " $tim
      echo "Int time: " $tim >> /var/www/html/data/$y/$mo/cosqm.log
      # default wait time set to the acquisition time with the red filter
-     echo $tim | sed -e 's/\./ /g'  > /root/toto.tmp
-     read tim timd toto < /root/toto.tmp
-     echo $tim | sed -e 's/000//g' | sed -e 's/00//g' > /root/toto.tmp
-     read tim toto < /root/toto.tmp
+     echo $tim | sed -e 's/\./ /g'  > /home/sand/toto.tmp
+     read tim timd toto < /home/sand/toto.tmp
+     echo $tim | sed -e 's/000//g' | sed -e 's/00//g' > /home/sand/toto.tmp
+     read tim toto < /home/sand/toto.tmp
      waittime=$tim"."$timd
 }
 
@@ -301,17 +301,17 @@ globalpos () {
 #
 #     /bin/echo "Waiting 10 sec for GPS reading..."
 #     sleep 10
-     sh -c '/usr/bin/gpspipe -w -n 10 > /root/coords.tmp &'
+     sh -c '/usr/bin/gpspipe -w -n 10 > /home/sand/coords.tmp &'
      killall -s SIGINT gpspipe 
-     /usr/bin/tail -2 /root/coords.tmp | sed -e 's/,/\n/g' | sed -e 's/"//g' | sed -e 's/:/ /g'> /root/bidon.tmp
-     grep lat /root/bidon.tmp > /root/bidon1.tmp
-     read bidon lat bidon1 < /root/bidon1.tmp
-     grep lon /root/bidon.tmp > /root/bidon1.tmp
-     read bidon lon bidon1 < /root/bidon1.tmp
-     grep alt /root/bidon.tmp > /root/bidon1.tmp
-     read bidon alt bidon1 < /root/bidon1.tmp
-     grep activated /root/bidon.tmp > /root/bidon1.tmp 
-     read bidon gpsdate bidon1 < /root/bidon1.tmp
+     /usr/bin/tail -2 /home/sand/coords.tmp | sed -e 's/,/\n/g' | sed -e 's/"//g' | sed -e 's/:/ /g'> /home/sand/bidon.tmp
+     grep lat /home/sand/bidon.tmp > /home/sand/bidon1.tmp
+     read bidon lat bidon1 < /home/sand/bidon1.tmp
+     grep lon /home/sand/bidon.tmp > /home/sand/bidon1.tmp
+     read bidon lon bidon1 < /home/sand/bidon1.tmp
+     grep alt /home/sand/bidon.tmp > /home/sand/bidon1.tmp
+     read bidon alt bidon1 < /home/sand/bidon1.tmp
+     grep activated /home/sand/bidon.tmp > /home/sand/bidon1.tmp 
+     read bidon gpsdate bidon1 < /home/sand/bidon1.tmp
      # /bin/echo "GPS is connected, reading lat lon data. Longitude:" $lon
      if [ -z "${lon}" ]
      then let lon=0
@@ -323,7 +323,7 @@ globalpos () {
      # set computer time
      # pkill ntpd
      #sleep 2
-     echo $gpsdate >> /root/datedugps
+     echo $gpsdate >> /home/sand/datedugps
      #date -s "$gpsdate"
      #/usr/sbin/ntpd
 }
@@ -355,8 +355,8 @@ filterpos=( 0 0 0 0 0 )
 possqm=0
 # calib is the magnitude offset for each filter
 fname=(Clear Red Green Blue Yellow)
-grep sqmIP /home/sand/localconfig > /root/toto # sqmIP est le mot cle cherche dans le localconfig 
-read bidon sqmip bidon < /root/toto
+grep sqmIP /home/sand/localconfig > /home/sand/toto # sqmIP est le mot cle cherche dans le localconfig 
+read bidon sqmip bidon < /home/sand/toto
 # one complete rotation in half step mode (mode 1) is maxstep=4080 i.e. 1 step = 0.087890625 deg
 # if you use the full step mode (mode 0) then maxstep=2040 is the number of steps i.e. 1 step = 0.17578125
 pos=0
@@ -366,8 +366,8 @@ newstep=0
 tim=0
 let movestep=maxstep/128
 sleep 10  # let 10 second to the gps to cleanly startup
-/bin/grep "Site_name" /home/sand/localconfig > /root/ligne.tmp
-read bidon NAME bidon < /root/ligne.tmp
+/bin/grep "Site_name" /home/sand/localconfig > /home/sand/ligne.tmp
+read bidon NAME bidon < /home/sand/ligne.tmp
 #setting led parameters
 #   Exports pin to userspace
 if [ ! -e /sys/class/gpio/gpio18 ]; then
@@ -436,12 +436,12 @@ do    y=`date +%Y`
                 #  reading longitude and latitude from localconfig
                 #
                 if [ `grep -c " " /home/sand/localconfig` -ne 0 ]
-                then /bin/grep Longitude /home/sand/localconfig > /root/ligne.tmp
-                     read bidon lon bidon < /root/ligne.tmp
-                     /bin/grep Latitude /home/sand/localconfig > /root/ligne.tmp
-                     read bidon lat bidon < /root/ligne.tmp
-                     /bin/grep Altitude /home/sand/localconfig > /root/ligne.tmp
-                     read bidon alt bidon < /root/ligne.tmp
+                then /bin/grep Longitude /home/sand/localconfig > /home/sand/ligne.tmp
+                     read bidon lon bidon < /home/sand/ligne.tmp
+                     /bin/grep Latitude /home/sand/localconfig > /home/sand/ligne.tmp
+                     read bidon lat bidon < /home/sand/ligne.tmp
+                     /bin/grep Altitude /home/sand/localconfig > /home/sand/ligne.tmp
+                     read bidon alt bidon < /home/sand/ligne.tmp
                 else 
                      echo "Please put something in /home/sand/localconfig and restart observe-sqm-stepper.bash."
 #                     echo "Please put something in /home/sand/localconfig and restart observe-sqm-stepper.bash." >> /var/www/html/data/$y/$mo/cosqm.log
@@ -515,10 +515,10 @@ do    y=`date +%Y`
                     /bin/sleep $waittime  # let enough time to be sure that the reading comes from
  	            # that filter
                     /bin/sleep 5.0
-	            /usr/local/bin/sqmleread.pl $sqmip 10001 1 > /root/sqmdata.tmp
-                    read sqm < /root/sqmdata.tmp
-                    echo $sqm | sed -e 's/,/ /g' | sed -e 's/m//g' > /root/toto.tmp
-                    read bidon sb bidon < /root/toto.tmp
+	            /usr/local/bin/sqmleread.pl $sqmip 10001 1 > /home/sand/sqmdata.tmp
+                    read sqm < /home/sand/sqmdata.tmp
+                    echo $sqm | sed -e 's/,/ /g' | sed -e 's/m//g' > /home/sand/toto.tmp
+                    read bidon sb bidon < /home/sand/toto.tmp
                     # keep the sqm value in mag per square arc second
                     sqmread[$n]=`/bin/echo $sb"+"${calib[$n]} |/usr/bin/bc -l`
                     sqmreads[$n]=`printf "%0.2f\n" ${sqmread[$n]}`
