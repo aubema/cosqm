@@ -23,10 +23,10 @@
 #
 findIntBrightness () {
     sleep $waittime
-    /usr/local/bin/sqmleread.pl $sqmip 10001 1 > /home/sand/sqmdata.tmp    
-    read sqm < /home/sand/sqmdata.tmp
-    echo $sqm | sed -e 's/,/ /g' | sed -e 's/m/ /g' | sed -e 's/\./ /g' > /home/sand/toto.tmp
-    read bidon sqmm sqmd bidon < /home/sand/toto.tmp
+    /usr/local/bin/sqmleread.pl $sqmip 10001 1 > /root/sqmdata.tmp    
+    read sqm < /root/sqmdata.tmp
+    echo $sqm | sed -e 's/,/ /g' | sed -e 's/m/ /g' | sed -e 's/\./ /g' > /root/toto.tmp
+    read bidon sqmm sqmd bidon < /root/toto.tmp
     # remove leading zero to the sky brightness
     if [ ${sqmm:0:1} == 0 ]
     then sqmm=`echo $sqmm | sed -e 's/0//g'`
@@ -55,17 +55,17 @@ findIntegration () {
      #  24.60 = 54.1s
      #  24.76 = 60s
      #  The integration time can be calculated with t=2.37E-25*SB**18.98
-     /usr/local/bin/sqmleread.pl $sqmip 10001 1 > /home/sand/sqmdata.tmp
-     read sqm < /home/sand/sqmdata.tmp
-     echo $sqm | sed -e 's/,/ /g' | sed -e 's/s//g' | sed -e 's/C/ C/g' > /home/sand/toto.tmp
-     read bidon bidon bidon bidon tim temp bidon < /home/sand/toto.tmp
+     /usr/local/bin/sqmleread.pl $sqmip 10001 1 > /root/sqmdata.tmp
+     read sqm < /root/sqmdata.tmp
+     echo $sqm | sed -e 's/,/ /g' | sed -e 's/s//g' | sed -e 's/C/ C/g' > /root/toto.tmp
+     read bidon bidon bidon bidon tim temp bidon < /root/toto.tmp
      echo "Decimal readout time: " $tim
      echo "Int time: " $tim >> /var/www/html/data/$y/$mo/cosqm.log
      # default wait time set to the acquisition time with the red filter
-     echo $tim | sed -e 's/\./ /g'  > /home/sand/toto.tmp
-     read tim timd toto < /home/sand/toto.tmp
-     echo $tim | sed -e 's/000//g' | sed -e 's/00//g' > /home/sand/toto.tmp
-     read tim toto < /home/sand/toto.tmp
+     echo $tim | sed -e 's/\./ /g'  > /root/toto.tmp
+     read tim timd toto < /root/toto.tmp
+     echo $tim | sed -e 's/000//g' | sed -e 's/00//g' > /root/toto.tmp
+     read tim toto < /root/toto.tmp
      waittime=$tim"."$timd
 }
 
@@ -301,19 +301,19 @@ globalpos () {
 #
 #     /bin/echo "Waiting 10 sec for GPS reading..."
 #     sleep 10
-     rm -f /home/sand/*.tmp
-     bash -c '/usr/bin/gpspipe -w -n 10 | sed -e 's/,/\n/g' | grep lat | head -1 | sed "s/n\"/ /g" |sed -e "s/\"/ /g" | sed -e "s/:/ /g" | sed -e "s/,/\n/g" > /home/sand/coords.tmp &'
-     sleep 1
-#     lat=$(cat /home/sand/coords.tmp  | /usr/bin/awk '{print $17}' | sed -e "s/n//g")
-     bash -c 'read bidon bidon bidon bidon bidon bidon bidon bidon bidon bidon date minute seconde bidon bidon bidon lat bidon bidon lon bidon alt bidon < /home/sand/coords.tmp'
+     rm -f /root/*.tmp
+     bash -c '/usr/bin/gpspipe -w -n 10 | sed -e 's/,/\n/g' | grep lat | head -1 | sed "s/n\"/ /g" |sed -e "s/\"/ /g" | sed -e "s/:/ /g" | sed -e "s/,/\n/g" > /root/coords.tmp'
+     sleep 2
+#     lat=$(cat /root/coords.tmp  | /usr/bin/awk '{print $17}' | sed -e "s/n//g")
+     bash -c 'read bidon bidon bidon bidon bidon bidon bidon bidon bidon bidon date minute seconde bidon bidon bidon lat bidon bidon lon bidon alt bidon < /root/coords.tmp'
      echo "lat0" $lat "lon" $lon "alt" $alt "bidon" $bidon
      exit 0
-     var=`/usr/bin/tail -2 /home/sand/coords.tmp | sed -e 's/,/\n/g' | sed -e 's/"//g' | sed -e 's/:/ /g' | grep lon`
+     var=`/usr/bin/tail -2 /root/coords.tmp | sed -e 's/,/\n/g' | sed -e 's/"//g' | sed -e 's/:/ /g' | grep lon`
      lon=$(echo $var|/usr/bin/awk '{print $2}')
           echo $lon $lat "var" $var
-     var=$(/usr/bin/tail -2 /home/sand/coords.tmp | sed -e 's/,/\n/g' | sed -e 's/"//g' | sed -e 's/:/ /g' | grep alt)
+     var=$(/usr/bin/tail -2 /root/coords.tmp | sed -e 's/,/\n/g' | sed -e 's/"//g' | sed -e 's/:/ /g' | grep alt)
      alt=$(echo $var|/usr/bin/awk '{print $2}')
-     var=$(/usr/bin/tail -2 /home/sand/coords.tmp | sed -e 's/,/\n/g' | sed -e 's/"//g' | sed -e 's/:/ /g' | grep activated)
+     var=$(/usr/bin/tail -2 /root/coords.tmp | sed -e 's/,/\n/g' | sed -e 's/"//g' | sed -e 's/:/ /g' | grep activated)
      gpsdate=$(echo $var|/usr/bin/awk '{print $2}')    
 
      # /bin/echo "GPS is connected, reading lat lon data. Longitude:" $lon
@@ -327,7 +327,7 @@ globalpos () {
      # set computer time
      # pkill ntpd
      #sleep 2
-     echo $gpsdate >> /home/sand/datedugps
+     echo $gpsdate >> /root/datedugps
      #date -s "$gpsdate"
      #/usr/sbin/ntpd
 }
@@ -359,8 +359,8 @@ filterpos=( 0 0 0 0 0 )
 possqm=0
 # calib is the magnitude offset for each filter
 fname=(Clear Red Green Blue Yellow)
-grep sqmIP /home/sand/localconfig > /home/sand/toto # sqmIP est le mot cle cherche dans le localconfig 
-read bidon sqmip bidon < /home/sand/toto
+grep sqmIP /root/localconfig > /root/toto # sqmIP est le mot cle cherche dans le localconfig 
+read bidon sqmip bidon < /root/toto
 # one complete rotation in half step mode (mode 1) is maxstep=4080 i.e. 1 step = 0.087890625 deg
 # if you use the full step mode (mode 0) then maxstep=2040 is the number of steps i.e. 1 step = 0.17578125
 pos=0
@@ -370,8 +370,8 @@ newstep=0
 tim=0
 let movestep=maxstep/128
 sleep 10  # let 10 second to the gps to cleanly startup
-/bin/grep "Site_name" /home/sand/localconfig > /home/sand/ligne.tmp
-read bidon NAME bidon < /home/sand/ligne.tmp
+/bin/grep "Site_name" /root/localconfig > /root/ligne.tmp
+read bidon NAME bidon < /root/ligne.tmp
 #setting led parameters
 #   Exports pin to userspace
 globalpos
@@ -440,16 +440,16 @@ do    y=`date +%Y`
                 #
                 #  reading longitude and latitude from localconfig
                 #
-                if [ `grep -c " " /home/sand/localconfig` -ne 0 ]
-                then /bin/grep Longitude /home/sand/localconfig > /home/sand/ligne.tmp
-                     read bidon lon bidon < /home/sand/ligne.tmp
-                     /bin/grep Latitude /home/sand/localconfig > /home/sand/ligne.tmp
-                     read bidon lat bidon < /home/sand/ligne.tmp
-                     /bin/grep Altitude /home/sand/localconfig > /home/sand/ligne.tmp
-                     read bidon alt bidon < /home/sand/ligne.tmp
+                if [ `grep -c " " /root/localconfig` -ne 0 ]
+                then /bin/grep Longitude /root/localconfig > /root/ligne.tmp
+                     read bidon lon bidon < /root/ligne.tmp
+                     /bin/grep Latitude /root/localconfig > /root/ligne.tmp
+                     read bidon lat bidon < /root/ligne.tmp
+                     /bin/grep Altitude /root/localconfig > /root/ligne.tmp
+                     read bidon alt bidon < /root/ligne.tmp
                 else 
-                     echo "Please put something in /home/sand/localconfig and restart observe-sqm-stepper.bash."
-#                     echo "Please put something in /home/sand/localconfig and restart observe-sqm-stepper.bash." >> /var/www/html/data/$y/$mo/cosqm.log
+                     echo "Please put something in /root/localconfig and restart observe-sqm-stepper.bash."
+#                     echo "Please put something in /root/localconfig and restart observe-sqm-stepper.bash." >> /var/www/html/data/$y/$mo/cosqm.log
                 fi
            fi
       else echo "GPS mode off"
@@ -520,10 +520,10 @@ do    y=`date +%Y`
                     /bin/sleep $waittime  # let enough time to be sure that the reading comes from
  	            # that filter
                     /bin/sleep 5.0
-	            /usr/local/bin/sqmleread.pl $sqmip 10001 1 > /home/sand/sqmdata.tmp
-                    read sqm < /home/sand/sqmdata.tmp
-                    echo $sqm | sed -e 's/,/ /g' | sed -e 's/m//g' > /home/sand/toto.tmp
-                    read bidon sb bidon < /home/sand/toto.tmp
+	            /usr/local/bin/sqmleread.pl $sqmip 10001 1 > /root/sqmdata.tmp
+                    read sqm < /root/sqmdata.tmp
+                    echo $sqm | sed -e 's/,/ /g' | sed -e 's/m//g' > /root/toto.tmp
+                    read bidon sb bidon < /root/toto.tmp
                     # keep the sqm value in mag per square arc second
                     sqmread[$n]=`/bin/echo $sb"+"${calib[$n]} |/usr/bin/bc -l`
                     sqmreads[$n]=`printf "%0.2f\n" ${sqmread[$n]}`
