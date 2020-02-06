@@ -304,7 +304,8 @@ globalpos () {
      rm -f /home/sand/*.tmp
      sh -c '/usr/bin/gpspipe -w -n 10 | sed -e 's/,/\n/g' | grep lat | head -1 | sed -e "s/\"/ /g" | sed -e "s/:/ /g" | sed -e "s/,/\n/g" > /home/sand/coords.tmp &'
      killall -s SIGINT gpspipe
-     lat=$(cat /home/sand/coords.tmp  | /usr/bin/awk '{print $20}' | sed -e "s/n//g")
+     sh -c 'cat /home/sand/coords.tmp | /usr/bin/awk '{print $20}' | sed -e "s/n//g" > /root/lat.tmp'
+     read lat < /root/lat.tmp`
      echo "lat" $lat
      exit 0
      var=`/usr/bin/tail -2 /home/sand/coords.tmp | sed -e 's/,/\n/g' | sed -e 's/"//g' | sed -e 's/:/ /g' | grep lon`
