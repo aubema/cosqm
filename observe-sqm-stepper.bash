@@ -310,11 +310,12 @@ globalpos () {
      read bidon lat bidon < /home/sand/toto.tmp
      var=$(/usr/bin/tail -2 /home/sand/coords.tmp | sed -e 's/,/\n/g' | sed -e 's/"//g' | sed -e 's/:/ /g' | grep lon)
      lon=$(echo $var|/usr/bin/awk '{print $2}')
+          echo $lon $lat "var" $var
      var=$(/usr/bin/tail -2 /home/sand/coords.tmp | sed -e 's/,/\n/g' | sed -e 's/"//g' | sed -e 's/:/ /g' | grep alt)
      alt=$(echo $var|/usr/bin/awk '{print $2}')
      var=$(/usr/bin/tail -2 /home/sand/coords.tmp | sed -e 's/,/\n/g' | sed -e 's/"//g' | sed -e 's/:/ /g' | grep activated)
      gpsdate=$(echo $var|/usr/bin/awk '{print $2}')    
-     echo $lon $lat
+
      # /bin/echo "GPS is connected, reading lat lon data. Longitude:" $lon
      if [ -z "${lon}" ]
      then let lon=0
