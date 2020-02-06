@@ -304,9 +304,12 @@ globalpos () {
      rm -f /home/sand/*.tmp
      sh -c '/usr/bin/gpspipe -w -n 10 > /home/sand/coords.tmp &'
      killall -s SIGINT gpspipe 
-     var=$(/usr/bin/tail -2 /home/sand/coords.tmp | sed -e 's/,/\n/g' | sed -e 's/"//g' | sed -e 's/:/ /g' | grep lat) lat=$(echo $var|awk '{print $2}')
-     var=$(/usr/bin/tail -2 /home/sand/coords.tmp | sed -e 's/,/\n/g' | sed -e 's/"//g' | sed -e 's/:/ /g' | grep lon) lon=$(echo $var|awk '{print $2}')
-     var=$(/usr/bin/tail -2 /home/sand/coords.tmp | sed -e 's/,/\n/g' | sed -e 's/"//g' | sed -e 's/:/ /g' | grep alt) alt=$(echo $var|awk '{print $2}'
+     var=$(/usr/bin/tail -2 /home/sand/coords.tmp | sed -e 's/,/\n/g' | sed -e 's/"//g' | sed -e 's/:/ /g' | grep lat)
+     lat=$(echo $var|awk '{print $2}')
+     var=$(/usr/bin/tail -2 /home/sand/coords.tmp | sed -e 's/,/\n/g' | sed -e 's/"//g' | sed -e 's/:/ /g' | grep lon)
+     lon=$(echo $var|awk '{print $2}')
+     var=$(/usr/bin/tail -2 /home/sand/coords.tmp | sed -e 's/,/\n/g' | sed -e 's/"//g' | sed -e 's/:/ /g' | grep alt)
+     alt=$(echo $var|awk '{print $2}'
      var=$(/usr/bin/tail -2 /home/sand/coords.tmp | sed -e 's/,/\n/g' | sed -e 's/"//g' | sed -e 's/:/ /g' | grep activated)
      gpsdate=$(echo $var|awk '{print $2}'    
      # /bin/echo "GPS is connected, reading lat lon data. Longitude:" $lon
