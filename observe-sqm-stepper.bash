@@ -79,7 +79,7 @@ findSQM () {
     echo "Search clear" >> /var/www/html/data/$y/$mo/cosqm.log
     maxbright=99999
     maxgrightpos=0
-    nmoy=5    # number of scan to average for a better retreival of the clear filter
+    nmoy=10    # number of scan to average for a better retreival of the clear filter
     findIntegration
     nn=0
     let moy[0]=0
