@@ -1,10 +1,11 @@
+#!/usr/bin/python
 import RPi.GPIO as GPIO
 import time
 import sys
 
 # Variables
 steps = 400
-delay = 0.004
+delay = 0.005
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
@@ -42,26 +43,24 @@ j=0
 
 for i in range(0, steps):
 	if GPIO.input(sensor_gpio)==0:
-		pos0=i
-		print(pos0)
 		break
-    	j=j+1
+	j=j+1
 	if j==1:
-       		setStep(1,0,1,0)
-    	if j==2:
-       		setStep(1,0,0,0)
-    	if j==3:
-      		setStep(1,0,0,1)
-    	if j==4:
-       		setStep(0,0,0,1)
-    	if j==5:
-       		setStep(0,1,0,1)
-    	if j==6:
-       		setStep(0,1,0,0)
-    	if j==7:
-       		setStep(0,1,1,0)
-    	if j==8:
        		setStep(0,0,1,0)
+    	if j==2:
+       		setStep(0,1,1,0)
+    	if j==3:
+      		setStep(0,1,0,0)
+    	if j==4:
+       		setStep(0,1,0,1)
+    	if j==5:
+       		setStep(0,0,0,1)
+    	if j==6:
+       		setStep(1,0,0,1)
+    	if j==7:
+       		setStep(1,0,0,0)
+    	if j==8:
+       		setStep(1,0,1,0)
        		j=0
 setStep(0,0,1,0)
 setStep(0,1,1,0)

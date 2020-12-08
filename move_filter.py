@@ -1,3 +1,4 @@
+#!/usr/bin/python
 import RPi.GPIO as GPIO
 import time
 import sys
@@ -9,7 +10,7 @@ if steps<0:
    steps=-1*steps
    reverse=1
 steps=steps-1
-delay = float(sys.argv[2]) * 0.01
+delay = float(sys.argv[2]) * 0.005
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
@@ -64,7 +65,6 @@ if reverse==0:
 else:
 	for i in range(0, steps):
     		j=j+1
-    		print(i,j)
 		if j==1:
        			setStep(0,0,1,0)
     		if j==2:

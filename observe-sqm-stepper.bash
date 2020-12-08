@@ -1,7 +1,7 @@
 #!/bin/bash 
 #
 #   
-#    Copyright (C) 2019  Martin Aube
+#    Copyright (C) 2020  Martin Aube
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -70,229 +70,6 @@ findIntegration () {
 }
 
 
-findSQM () {
-# =============================
-# find the clear filter position
-#
-    echo "================================="
-    echo "Searching for the clear filter..."
-    echo "Search clear" >> /var/www/html/data/$y/$mo/cosqm.log
-    maxbright=99999
-    maxgrightpos=0
-    nmoy=10    # number of scan to average for a better retreival of the clear filter
-    findIntegration
-    nn=0
-    let moy[0]=0
-    let moy[1]=0
-    let moy[2]=0
-    let moy[3]=0
-    let moy[4]=0
-    while [ $nn -le $nmoy ]
-    do echo "Finding clear filter...  SCAn # " $nn
-       echo "Find clear, SCAn # " $nn >> /var/www/html/data/$y/$mo/cosqm.log
-       n=0
-       while [ $n -le ${#filters[*]} ]
-       do filter=${filters[$n]}
-          destina=${filterpos[$n]}
-          let ang=destina-pos
-          # moving filter wheel
-          echo "Moving the filter wheel to filter position " $n
-          let pos=pos+ang
-          bash -c 'echo "1" > /sys/class/gpio/gpio18/value'
-          /usr/local/bin/MoveStepFilterWheel.py $ang 0
-          bash -c 'echo "0" > /sys/class/gpio/gpio18/value'
-          echo "Reading sqm at position: " $n
-          echo "Reading sqm at position: " $n >> /var/www/html/data/$y/$mo/cosqm.log
-          /bin/sleep $waittime  # let enough time to be sure that the reading comes from that filter
-          /bin/sleep 0.1
-          findIntBrightness 
-          let IntBright[$n]=meas
-          echo "n="$n " SB=" $meas
-          echo "n="$n " SB=" $meas  >> /var/www/html/data/$y/$mo/cosqm.log
-          let moy[$n]=moy[$n]+IntBright[$n]
-          let n=n+1
-       done
-       let nn=nn+1
-    done
-    n=0
-    while [ $n -le ${#filters[*]} ]
-    do let IntBright[$n]=moy[$n]/nmoy
-       let n=n+1
-    done
-    # correct for possible drift in the brightness during the scan
-    let drift=IntBright[5]-IntBright[0]
-    n=0
-    while [ $n -lt ${#filters[*]} ]
-    do let IntBright[$n]=IntBright[$n]-drift*n/5
-       if [ ${IntBright[$n]} -lt $maxbright ]
-       then let maxbright=IntBright[$n]
-            let maxbrightpos=${filterpos[$n]}
-       fi
-       let n=n+1
-    done
-    let possqm=maxbrightpos
-    let filterpos[0]=possqm
-    let filterpos[1]=possqm+maxstep/5
-    if [ ${filterpos[1]} -gt $maxstep ]
-    then let filterpos[1]=filterpos[1]-maxstep
-    fi
-    let filterpos[2]=possqm+2*maxstep/5
-    if [ ${filterpos[2]} -gt $maxstep ]
-    then let filterpos[2]=filterpos[2]-maxstep
-    fi
-    let filterpos[3]=possqm+3*maxstep/5
-    if [ ${filterpos[3]} -gt $maxstep ]
-    then let filterpos[3]=filterpos[3]-maxstep
-    fi
-    let filterpos[4]=possqm+4*maxstep/5
-    if [ ${filterpos[4]} -gt $maxstep ]
-    then let filterpos[4]=filterpos[4]-maxstep
-    fi
-    destina=${filterpos[0]}
-    let ang=destina-pos
-    # moving filter wheel
-    echo "Moving the filter wheel to filter " $n "("${fname[0]}")"
-    let pos=pos+ang
-    /usr/local/bin/MoveStepFilterWheel.py $ang 0   
-}
-
-
-#######
-# filter center
-center () {
-    
-    mes0=99999
-    # approximate position of the clear
-    let ang=maxstep/10
-    findIntegration
-    findIntBrightness
-    let pos0=pos
-    let mes0=meas
-    /usr/local/bin/MoveStepFilterWheel.py $ang 0
-    let pos=pos+ang
-    findIntBrightness
-    if [ $meas -lt $mes0 ]
-    then let pos0=pos
-         let mes0=meas
-    fi
-    /usr/local/bin/MoveStepFilterWheel.py $ang 0
-    let pos=pos+ang
-    findIntBrightness
-    if [ $meas -lt $mes0 ]
-    then let pos0=pos
-         let mes0=meas
-    fi
-    /usr/local/bin/MoveStepFilterWheel.py $ang 0
-    let pos=pos+ang
-    findIntBrightness
-    if [ $meas -lt $mes0 ]
-    then let pos0=pos
-         let mes0=meas
-    fi
-    /usr/local/bin/MoveStepFilterWheel.py $ang 0
-    let pos=pos+ang
-    findIntBrightness
-    if [ $meas -lt $mes0 ]
-    then let pos0=pos
-         let mes0=meas
-    fi
-    /usr/local/bin/MoveStepFilterWheel.py $ang 0
-    let pos=pos+ang
-    findIntBrightness
-    if [ $meas -lt $mes0 ]
-    then let pos0=pos
-         let mes0=meas
-    fi
-    /usr/local/bin/MoveStepFilterWheel.py $ang 0
-    let pos=pos+ang
-    findIntBrightness
-    if [ $meas -lt $mes0 ]
-    then let pos0=pos
-         let mes0=meas
-    fi
-    /usr/local/bin/MoveStepFilterWheel.py $ang 0
-    let pos=pos+ang
-    findIntBrightness
-    if [ $meas -lt $mes0 ]
-    then let pos0=pos
-         let mes0=meas
-    fi
-    /usr/local/bin/MoveStepFilterWheel.py $ang 0
-    let pos=pos+ang
-    findIntBrightness
-    if [ $meas -lt $mes0 ]
-    then let pos0=pos
-         let mes0=meas
-    fi
-
-
-# goto approx clear
-let ang=pos0-pos
-/usr/local/bin/MoveStepFilterWheel.py $ang 0
-let pos=pos+ang
-
-    let newstep=maxstep/5/movestep+1
-    let ang=maxstep/2-maxstep/10
-    /usr/local/bin/MoveStepFilterWheel.py $ang 0
-    let pos=pos+ang
-
-    echo "Searching for nearest filter center..."
-    echo "Search filter center..."  >> /var/www/html/data/$y/$mo/cosqm.log
-       findIntegration
-       let n=0
-       let memoi=0
-       echo -e "Iter \t\t Pos \t\t SB"
-       echo -e "Iter \t\t Pos \t\t SB"  >> /var/www/html/data/$y/$mo/cosqm.log
-       while [ $n -le $newstep ]
-       do findIntBrightness
-	  echo -e $n "\t\t" $pos "\t\t" $meas
-          echo -e $n "\t\t" $pos "\t\t" $meas >> /var/www/html/data/$y/$mo/cosqm.log
-	  if [ $meas -gt $memoi ]
-          then let memoi=meas
-               let pospeak=pos
-          fi
-          bash -c 'echo "1" > /sys/class/gpio/gpio18/value'
-          /usr/local/bin/MoveStepFilterWheel.py $movestep 0
-	  let pos=pos+movestep
-          bash -c 'echo "0" > /sys/class/gpio/gpio18/value'
-          let n=n+1
-       done
-echo "peak 1=" $pospeak
-echo "newstep" $newstep $pospeak $pos
-
-    # add 1/10 of the total tics to find the center of the filter
-    let possqm=pospeak+maxstep/10
-    if [ $possqm -gt $maxstep ] 
-    then let possqm=possqm-maxstep-1
-    fi
-    if [ $possqm -lt -$maxstep ] 
-    then let possqm=possqm+maxstep+1
-    fi
-    # set filters position array
-    let filterpos[0]=possqm
-    let filterpos[1]=possqm+maxstep/5
-    if [ ${filterpos[1]} -gt $maxstep ]
-    then let filterpos[1]=filterpos[1]-maxstep
-    fi
-    let filterpos[2]=possqm+2*maxstep/5
-    if [ ${filterpos[2]} -gt $maxstep ]
-    then let filterpos[2]=filterpos[2]-maxstep
-    fi
-    let filterpos[3]=possqm+3*maxstep/5
-    if [ ${filterpos[3]} -gt $maxstep ]
-    then let filterpos[3]=filterpos[3]-maxstep
-    fi
-    let filterpos[4]=possqm+4*maxstep/5
-    if [ ${filterpos[4]} -gt $maxstep ]
-    then let filterpos[4]=filterpos[4]-maxstep
-    fi
-    let filterpos[5]=possqm+5*maxstep/5
-    if [ ${filterpos[5]} -gt $maxstep ]
-    then let filterpos[5]=filterpos[5]-maxstep
-    fi
-}
-
-
 # ==================================
 # global positioning system
 globalpos () {
@@ -302,18 +79,18 @@ globalpos () {
 #     /bin/echo "Waiting 10 sec for GPS reading..."
 #     sleep 10
      rm -f /root/*.tmp
+     
 
-
-     bash -c '/usr/bin/gpspipe -w -n 10 | sed -e "s/,/\n/g" | grep lat | tail -1 | sed "s/n\"/ /g" |sed -e "s/\"/ /g" | sed -e "s/:/ /g" | sed -e"s/lat//g" | sed -e "s/ //g" > /home/sand/coords.tmp'
+     bash -c '/usr/bin/gpspipe -w -n 3 | sed -e "s/,/\n/g" | grep lat | tail -1 | sed "s/n\"/ /g" |sed -e "s/\"/ /g" | sed -e "s/:/ /g" | sed -e"s/lat//g" | sed -e "s/ //g" > /home/sand/coords.tmp'
      read lat < /home/sand/coords.tmp
-      bash -c '/usr/bin/gpspipe -w -n 10 | sed -e "s/,/\n/g" | grep lon | tail -1 | sed "s/n\"/ /g" |sed -e "s/\"/ /g" | sed -e "s/:/ /g" | sed -e "s/lo//g" | sed -e "s/ //g" > /home/sand/coords.tmp'
+     bash -c '/usr/bin/gpspipe -w -n 3 | sed -e "s/,/\n/g" | grep lon | tail -1 | sed "s/n\"/ /g" |sed -e "s/\"/ /g" | sed -e "s/:/ /g" | sed -e "s/lo//g" | sed -e "s/ //g" > /home/sand/coords.tmp'
      read lon < /home/sand/coords.tmp
-    bash -c '/usr/bin/gpspipe -w -n 10 | sed -e "s/,/\n/g" | grep alt | tail -1 | sed "s/n\"/ /g" |sed -e "s/\"/ /g" | sed -e "s/:/ /g" | sed -e "s/alt//g" | sed -e "s/ //g" > /home/sand/coords.tmp'
+     bash -c '/usr/bin/gpspipe -w -n 3 | sed -e "s/,/\n/g" | grep alt | tail -1 | sed "s/n\"/ /g" |sed -e "s/\"/ /g" | sed -e "s/:/ /g" | sed -e "s/alt//g" | sed -e "s/ //g" > /home/sand/coords.tmp'
      read alt < /home/sand/coords.tmp
      echo $lat $lon $alt
 
 
-     # /bin/echo "GPS is connected, reading lat lon data. Longitude:" $lon
+     /bin/echo "GPS is connected, reading lat lon data. Longitude:" $lon
      if [ -z "${lon}" ]
      then let lon=0
           let lat=0
@@ -338,7 +115,6 @@ gpsf=1
 gpsport="ttyACM0"
 nobs=9999  		# number of times measured if 9999 then infinity
 waittime=10             # at a mag of about 24 the integration time is around 60s
-maxstep=2040            # this is inherent to the motor and mode used
 # After startup of the CoSQM, We search for the SQM position of the filter wheel 
 # during twilight (around SB=11)
 # At that moment the sky is relatively uniform and the integration time is short
@@ -352,39 +128,33 @@ scanlevel=1500  # must be brightest than that level to perfore the filter scans,
 #
 filters=( 0 1 2 3 4 )
 calib=( 0.0 0.0 0.0 0.0 0.0 )
-filterpos=( 0 0 0 0 0 )
-possqm=0
+ang=80
 # calib is the magnitude offset for each filter
 fname=(Clear Red Green Blue Yellow)
 grep sqmIP /home/sand/localconfig > /root/toto # sqmIP est le mot cle cherche dans le localconfig 
 read bidon sqmip bidon < /root/toto
-# one complete rotation in half step mode (mode 1) is maxstep=4080 i.e. 1 step = 0.087890625 deg
-# if you use the full step mode (mode 0) then maxstep=2040 is the number of steps i.e. 1 step = 0.17578125
+# one complete rotation in half step mode 400
 pos=0
-scandone=0
 count=1
 newstep=0
 tim=0
-let movestep=maxstep/128
 sleep 10  # let 10 second to the gps to cleanly startup
 /bin/grep "Site_name" /home/sand/localconfig > /root/ligne.tmp
 read bidon NAME bidon < /root/ligne.tmp
 #setting led parameters
 #   Exports pin to userspace
-if [ ! -e /sys/class/gpio/gpio18 ]; then
-	bash -c 'echo "18" > /sys/class/gpio/export'
+if [ ! -e /sys/class/gpio/gpio13 ]; then
+	bash -c 'echo "13" > /sys/class/gpio/export'
 fi               
-# Sets pin 18 as an output
-if [ ! -e /sys/class/gpio/export/18/direction ]; then
-	bash -c 'echo "out" > /sys/class/gpio/gpio18/direction'
+# Sets gpio 13 as an output for the LED
+if [ ! -e /sys/class/gpio/export/13/direction ]; then
+	bash -c 'echo "out" > /sys/class/gpio/gpio13/direction'
 fi
-bash -c 'echo "1" > /sys/class/gpio/gpio18/value'
+bash -c 'echo "1" > /sys/class/gpio/gpio13/value'
 sleep 2
-bash -c 'echo "0" > /sys/class/gpio/gpio18/value'
-                globalpos
-
-                
-                
+bash -c 'echo "0" > /sys/class/gpio/gpio13/value'
+echo "toto1"
+globalpos
                 
                 
 #
@@ -397,36 +167,20 @@ do    y=`date +%Y`
       mo=`date +%m`
       findIntegration
       findIntBrightness
-      while [ $meas -le $minim ] && [ $scandone -eq 0 ]   # too bright it is daytime
+      while [ $meas -le $minim ]    # too bright it is daytime
       do findIntBrightness
 	 echo "Brightness = " $meas "Wait 1 min until twilight ("$minim"<(SBx100))"
          echo "BrightLev= " $meas >> /var/www/html/data/$y/$mo/cosqm.log
-         scandone=0
 # blink the led to indicate that the cosqm is waiting for the twilight
-         bash -c 'echo "1" > /sys/class/gpio/gpio18/value'
-         sleep 19
-         bash -c 'echo "0" > /sys/class/gpio/gpio18/value'
-         sleep 1         
-         bash -c 'echo "1" > /sys/class/gpio/gpio18/value'
-         sleep 19
-         bash -c 'echo "0" > /sys/class/gpio/gpio18/value'
-         sleep 1
-         bash -c 'echo "1" > /sys/class/gpio/gpio18/value'
-         sleep 19
-         bash -c 'echo "0" > /sys/class/gpio/gpio18/value'
-         sleep 1         
-#	 sleep 60
+         del=0
+         while [ $del -le 3 ]
+         do bash -c 'echo "1" > /sys/class/gpio/gpio13/value'
+            sleep 19
+            bash -c 'echo "0" > /sys/class/gpio/gpio13/value'
+            sleep 1
+            let del=del+1        
+         done
       done
-      if [ $scandone -eq 0 ]                                    # filter scan not yet done today
-      then echo "Brightness = " $meas
-           echo "Brightness = " $meas >> /var/www/html/data/$y/$mo/cosqm.log
-           if [ $meas -le $scanlevel ] && [ $meas -ge $minim ]  # it is twilight
-           then center
-                findSQM
-	        scandone=1
-                count=0
-           fi
-      fi
       #
       #  searching for gps
       #
@@ -437,15 +191,7 @@ do    y=`date +%Y`
            then echo "GPS look present."
 #                echo "GPS look present." >> /var/www/html/data/$y/$mo/cosqm.log
                 globalpos
-
-                
-                
-                
-                
-                
-                
-                
-                
+               
            else /bin/echo "GPS not present: using coords. from localconfig"
                 /bin/echo "GPS not present" >> /var/www/html/data/$y/$mo/cosqm.log
                 #
@@ -466,48 +212,15 @@ do    y=`date +%Y`
       else echo "GPS mode off"
            echo "GPS mode off" >> /var/www/html/data/$y/$mo/cosqm.log
       fi
-      if [ $scandone -eq 1 ]
-      then  # flash 10 times the LED to indicate that the measurement sequence is beginning
-            bash -c 'echo "1" > /sys/class/gpio/gpio18/value'
-            sleep 0.25
-            bash -c 'echo "0" > /sys/class/gpio/gpio18/value'
-            sleep 0.25
-            bash -c 'echo "1" > /sys/class/gpio/gpio18/value'
-            sleep 0.25
-            bash -c 'echo "0" > /sys/class/gpio/gpio18/value'
-            sleep 0.25
-            bash -c 'echo "1" > /sys/class/gpio/gpio18/value'
-            sleep 0.25
-            bash -c 'echo "0" > /sys/class/gpio/gpio18/value'
-            sleep 0.25
-            bash -c 'echo "1" > /sys/class/gpio/gpio18/value'
-            sleep 0.25
-            bash -c 'echo "0" > /sys/class/gpio/gpio18/value'
-            sleep 0.25
-            bash -c 'echo "1" > /sys/class/gpio/gpio18/value'
-            sleep 0.25
-            bash -c 'echo "0" > /sys/class/gpio/gpio18/value'
-            sleep 0.25
-            bash -c 'echo "1" > /sys/class/gpio/gpio18/value'
-            sleep 0.25
-            bash -c 'echo "0" > /sys/class/gpio/gpio18/value'
-            sleep 0.25
-            bash -c 'echo "1" > /sys/class/gpio/gpio18/value'
-            sleep 0.25
-            bash -c 'echo "0" > /sys/class/gpio/gpio18/value'
-            sleep 0.25
-            bash -c 'echo "1" > /sys/class/gpio/gpio18/value'
-            sleep 0.25
-            bash -c 'echo "0" > /sys/class/gpio/gpio18/value'
-            sleep 0.25
-            bash -c 'echo "1" > /sys/class/gpio/gpio18/value'
-            sleep 0.25
-            bash -c 'echo "0" > /sys/class/gpio/gpio18/value'
-            sleep 0.25
-            bash -c 'echo "1" > /sys/class/gpio/gpio18/value'
-            sleep 0.25
-            bash -c 'echo "0" > /sys/class/gpio/gpio18/value'
-            sleep 10
+            # flash 10 times the LED to indicate that the measurement sequence is beginning
+            led=0
+            while [ $led -le 10 ]
+            do bash -c 'echo "1" > /sys/class/gpio/gpio13/value'
+               sleep 0.25
+               bash -c 'echo "0" > /sys/class/gpio/gpio13/value'
+               sleep 0.25
+               let led=led+1
+            done
             findIntBrightness
             if [ $meas -gt $minim ]    # too bright it is daytime
             then recentime=0
@@ -519,14 +232,10 @@ do    y=`date +%Y`
                  then let i=i+1 #   never ending loop
                  fi
                  n=0
+                 /usr/local/bin/zero_pos.py
+ #                /usr/local/bin/move_filter.py -7 1
                  while [ $n -lt ${#filters[*]} ]
                  do filter=${filters[$n]}
-	                destina=${filterpos[$n]}
-                    let ang=destina-pos
-                    # moving filter wheel
-                    echo "Moving the filter wheel to filter " $n "("${fname[$n]}")"
-                    let pos=pos+ang
-                    /usr/local/bin/MoveStepFilterWheel.py $ang 0  
                     echo "Reading sqm, Filter: " $n
                     /bin/sleep $waittime  # let enough time to be sure that the reading comes from
  	            # that filter
@@ -550,28 +259,23 @@ do    y=`date +%Y`
                     sbcals[$n]=`printf "%0.6e\n" ${sbcal[$n]}`
                     echo "Flux in band " $n " = "${sbcals[$n]}
                     let n=n+1
+                    /usr/local/bin/move_filter.py $ang 1
                  done
-                 # short blink of the led after measurement sequence
-                 bash -c 'echo "1" > /sys/class/gpio/gpio18/value'
-                 sleep 0.25
-                 bash -c 'echo "0" > /sys/class/gpio/gpio18/value'
-                 sleep 0.25
-                 bash -c 'echo "1" > /sys/class/gpio/gpio18/value'
-                 sleep 0.25
-                 bash -c 'echo "0" > /sys/class/gpio/gpio18/value'
-                 sleep 0.25
-                 bash -c 'echo "1" > /sys/class/gpio/gpio18/value'
-                 sleep 0.25
-                 bash -c 'echo "0" > /sys/class/gpio/gpio18/value'
-                 sleep 0.25
+                 # short 3 blinks of the led after measurement sequence and before parking to red
+                 led=0
+                 while [ $led -le 3 ]
+                 do bash -c 'echo "1" > /sys/class/gpio/gpio13/value'
+                    sleep 0.25
+                    bash -c 'echo "0" > /sys/class/gpio/gpio13/value'
+                    sleep 0.25
+                    let led=led+1
+                 done
                  # goto the red filter to protect the sqm lens
-                 destina=${filterpos[1]}
-                 let ang=destina-pos
-                 # moving filter wheel
+                 # moving filter wheel to parking red
                  echo "Moving the filter wheel to filter 1 ("${fname[1]}")"
                  echo "Moving to "${fname[1]} >> /var/www/html/data/$y/$mo/cosqm.log
-                 let pos=pos+ang
-                 /usr/local/bin/MoveStepFilterWheel.py $ang 0      
+                 let parkang=ang
+                 /usr/local/bin/move_filter.py $parkang 1      
                  nomfich=`date -u +"%Y-%m-%d"`
                  nomfich=$nomfich".txt"
                  time=`date +%Y-%m-%d" "%H:%M:%S`
@@ -586,13 +290,14 @@ do    y=`date +%Y`
                  fi
                  echo $time $lat $lon $alt $temp $waittime ${sqmreads[0]} ${sqmreads[1]} ${sqmreads[2]} ${sqmreads[3]} ${sqmreads[4]} ${sbcals[0]} ${sbcals[1]} ${sbcals[2]} ${sbcals[3]} ${sbcals[4]}>> /var/www/html/data/$y/$mo/$nomfich
             fi
-      fi
       time2=`date +%s`
       let idle=150-time2+time1  # one measurement every 2.5 min
       if [ $idle -lt 0 ] ; then let idle=0; fi
       echo "Wait " $idle "s before next reading."
       echo "Wait " $idle "s" >> /var/www/html/data/$y/$mo/cosqm.log
+      bash -c 'echo "1" > /sys/class/gpio/gpio13/value'
       /bin/sleep $idle
+      bash -c 'echo "0" > /sys/class/gpio/gpio13/value'
       time1=`date +%s`
 done
 echo "End of observe-sqm-stepper.bash"
