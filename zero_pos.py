@@ -64,5 +64,9 @@ for i in range(0, steps):
        		j=0
 setStep(0,0,1,0)
 setStep(0,1,1,0)
-setStep(0,1,0,0)
-setStep(0,1,0,1)
+#setStep(0,1,0,0)
+#setStep(0,1,0,1)
+#setStep(0,0,0,1)
+#setStep(1,0,0,1)
+#setStep(1,0,0,0)
+
