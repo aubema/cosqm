@@ -39,7 +39,7 @@ cd /home/sand
 itime=239
 ng=1
 luminosite=0
-while [ $luminosite -lt 50 ] && [ $ng -le 6 ]
+while [ $luminosite -lt 50 ] && [ $ng -le 7 ]
 do /usr/bin/raspistill -t 1 -md 3 -bm -ex off -ag 16 --shutter $itime -ISO 800 -st -o /home/sand/skytmp.jpg 
    /usr/bin/convert -resize 640x640^ -gaussian-blur 0.05 -quality 85%  /home/sand/skytmp.jpg /home/sand/sky.jpg
 
@@ -47,7 +47,6 @@ do /usr/bin/raspistill -t 1 -md 3 -bm -ex off -ag 16 --shutter $itime -ISO 800 -
 # mesurer le niveau de gris moyen (mean)
    /usr/bin/identify -verbose /home/sand/sky.jpg | /bin/grep mean | /bin/sed 's/mean://g' |  /usr/bin/tr -d '\n' > /home/sand/mean.tmp
    read r rr g gg b bb < /home/sand/mean.tmp 
-cat /home/sand/mean.tmp
    /bin/echo $r $g $b
    /bin/echo $r $g $b >> /home/sand/color.txt
    if [ ! $b ]
