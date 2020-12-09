@@ -98,38 +98,28 @@ globalpos () {
      fi 
      /bin/echo "GPS gives Latitude:" $lat ", Longitude:" $lon "and Altitude:" $alt
      /bin/echo "Lat.:" $lat ", Lon.:" $lon " Alt.:" $alt  >> /var/www/html/data/$y/$mo/cosqm.log
-     # set computer time
-     # pkill ntpd
-     #sleep 2
      echo $gpsdate >> /root/datedugps
-     #date -s "$gpsdate"
-     #/usr/sbin/ntpd
 }
 
 
 #
 # ==================================
+#
 # main
+#
 # activate gps option 0=off 1=on
 gpsf=1
 gpsport="ttyACM0"
 nobs=9999  		# number of times measured if 9999 then infinity
 waittime=10             # at a mag of about 24 the integration time is around 60s
-# After startup of the CoSQM, We search for the SQM position of the filter wheel 
-# during twilight (around SB=11)
-# At that moment the sky is relatively uniform and the integration time is short
-# minim should be written as 100xSkyBrightness (e.g for Sky brightness of 9.0 you 
-# should write 900
 minim=900 # minimal value of the interval of sky brightness optimal to find SQM position suggested value 900
-scanlevel=1500  # must be brightest than that level to perfore the filter scans, i.e. brightness values lower that scanlevel/100 suggested value 1100
 #
 # set band list
 # wavelengths 0:= Clear ,1:= Red 2:= Green ,3:= Blue ,4:= Yellow
 #
 filters=( 0 1 2 3 4 )
-calib=( 0.0 0.0 0.0 0.0 0.0 )
-ang=80
-# calib is the magnitude offset for each filter
+calib=( 0.0 0.0 0.0 0.0 0.0 ) # magnitude offset for each filter
+ang=80  # steps between each filter (400 for the complete rotation)
 fname=(Clear Red Green Blue Yellow)
 grep sqmIP /home/sand/localconfig > /root/toto # sqmIP est le mot cle cherche dans le localconfig 
 read bidon sqmip bidon < /root/toto
@@ -141,8 +131,8 @@ tim=0
 sleep 10  # let 10 second to the gps to cleanly startup
 /bin/grep "Site_name" /home/sand/localconfig > /root/ligne.tmp
 read bidon NAME bidon < /root/ligne.tmp
-#setting led parameters
-#   Exports pin to userspace
+# Setting led parameters
+# Exports pin to userspace
 if [ ! -e /sys/class/gpio/gpio13 ]; then
 	bash -c 'echo "13" > /sys/class/gpio/export'
 fi               
@@ -153,10 +143,9 @@ fi
 bash -c 'echo "1" > /sys/class/gpio/gpio13/value'
 sleep 2
 bash -c 'echo "0" > /sys/class/gpio/gpio13/value'
-echo "toto1"
+# first gps coordinates
 globalpos
-                
-                
+#=====          
 #
 # main loop
 #
@@ -171,7 +160,7 @@ do    y=`date +%Y`
       do findIntBrightness
 	 echo "Brightness = " $meas "Wait 1 min until twilight ("$minim"<(SBx100))"
          echo "BrightLev= " $meas >> /var/www/html/data/$y/$mo/cosqm.log
-# blink the led to indicate that the cosqm is waiting for the twilight
+         # blink the led to indicate that the cosqm is waiting for the twilight
          del=0
          while [ $del -le 3 ]
          do bash -c 'echo "1" > /sys/class/gpio/gpio13/value'
@@ -186,12 +175,9 @@ do    y=`date +%Y`
       #
       if [ $gpsf -eq 1 ] 
       then echo "GPS mode activated"
-#           echo "GPS mode activated" >> /var/www/html/data/$y/$mo/cosqm.log
            if [ `ls /dev | grep $gpsport`  ] 
            then echo "GPS look present."
-#                echo "GPS look present." >> /var/www/html/data/$y/$mo/cosqm.log
                 globalpos
-               
            else /bin/echo "GPS not present: using coords. from localconfig"
                 /bin/echo "GPS not present" >> /var/www/html/data/$y/$mo/cosqm.log
                 #
@@ -205,91 +191,85 @@ do    y=`date +%Y`
                      /bin/grep Altitude /home/sand/localconfig > /root/ligne.tmp
                      read bidon alt bidon < /root/ligne.tmp
                 else 
-                     echo "Please put something in /home/sand/localconfig and restart observe-sqm-stepper.bash."
-#                     echo "Please put something in /home/sand/localconfig and restart observe-sqm-stepper.bash." >> /var/www/html/data/$y/$mo/cosqm.log
+                     echo "Please edit /home/sand/localconfig and restart observe-sqm-stepper.bash."
                 fi
            fi
       else echo "GPS mode off"
            echo "GPS mode off" >> /var/www/html/data/$y/$mo/cosqm.log
       fi
-            # flash 10 times the LED to indicate that the measurement sequence is beginning
-            led=0
-            while [ $led -le 10 ]
-            do bash -c 'echo "1" > /sys/class/gpio/gpio13/value'
-               sleep 0.25
-               bash -c 'echo "0" > /sys/class/gpio/gpio13/value'
-               sleep 0.25
-               let led=led+1
-            done
-            findIntBrightness
-            if [ $meas -gt $minim ]    # too bright it is daytime
-            then recentime=0
-                 let count=count+1
-                 echo "=========================="
-                 echo "Start measurement #" $count
-                 echo "Meas #" $count >> /var/www/html/data/$y/$mo/cosqm.log
-                 if [  $nobs != 9999 ] 
-                 then let i=i+1 #   never ending loop
-                 fi
-                 n=0
-                 /usr/local/bin/zero_pos.py
- #                /usr/local/bin/move_filter.py -7 1
-                 while [ $n -lt ${#filters[*]} ]
-                 do filter=${filters[$n]}
-                    echo "Reading sqm, Filter: " $n
-                    /bin/sleep $waittime  # let enough time to be sure that the reading comes from
- 	            # that filter
-                    /bin/sleep 5.0
-	            /usr/local/bin/sqmleread.pl $sqmip 10001 1 > /root/sqmdata.tmp
-                    read sqm < /root/sqmdata.tmp
-                    echo $sqm | sed -e 's/,/ /g' | sed -e 's/m//g' > /root/toto.tmp
-                    read bidon sb bidon < /root/toto.tmp
-                    # keep the sqm value in mag per square arc second
-                    sqmread[$n]=`/bin/echo $sb"+"${calib[$n]} |/usr/bin/bc -l`
-                    sqmreads[$n]=`printf "%0.2f\n" ${sqmread[$n]}`
-                    echo "Sky brightness in band " $n " = " ${sqmreads[$n]}
-                    echo "Bright " $n " = " ${sqmreads[$n]} >> /var/www/html/data/$y/$mo/cosqm.log
-                    # convert mag par sq arc second to flux
-                    # convert mpsas to W cm-2 sr-1
-                    # Sanchez de Miguel, A., M. Aube, Jaime Zamorano, M. Kocifaj, J. Roby, and C. Tapia. 
-                    # "Sky Quality Meter measurements in a colour-changing world." 
-                    # Monthly Notices of the Royal Astronomical Society 467, no. 3 (2017): 2966-2979.
-                    #      sbcal[$n]=`/bin/echo "270.0038*10^(-0.4*"${sqmread[$n]}")" |/usr/bin/bc -l`
-                    sbcal[$n]=`/bin/echo "270.0038*e((-0.4*"${sqmread[$n]}")*l(10))" |/usr/bin/bc -l`
-                    sbcals[$n]=`printf "%0.6e\n" ${sbcal[$n]}`
-                    echo "Flux in band " $n " = "${sbcals[$n]}
-                    let n=n+1
-                    /usr/local/bin/move_filter.py $ang 1
-                 done
-                 # short 3 blinks of the led after measurement sequence and before parking to red
-                 led=0
-                 while [ $led -le 3 ]
-                 do bash -c 'echo "1" > /sys/class/gpio/gpio13/value'
-                    sleep 0.25
-                    bash -c 'echo "0" > /sys/class/gpio/gpio13/value'
-                    sleep 0.25
-                    let led=led+1
-                 done
-                 # goto the red filter to protect the sqm lens
-                 # moving filter wheel to parking red
-                 echo "Moving the filter wheel to filter 1 ("${fname[1]}")"
-                 echo "Moving to "${fname[1]} >> /var/www/html/data/$y/$mo/cosqm.log
-                 let parkang=ang
-                 /usr/local/bin/move_filter.py $parkang 1      
-                 nomfich=`date -u +"%Y-%m-%d"`
-                 nomfich=$nomfich".txt"
-                 time=`date +%Y-%m-%d" "%H:%M:%S`
-                 y=`date +%Y`
-                 mo=`date +%m`
-                 d=`date +%d`
-                 if [ ! -d /var/www/html/data/$y ]
-                 then mkdir /var/www/html/data/$y
-                 fi
-                 if [ ! -d /var/www/html/data/$y/$mo ]
-                 then /bin/mkdir /var/www/html/data/$y/$mo
-                 fi
-                 echo $time $lat $lon $alt $temp $waittime ${sqmreads[0]} ${sqmreads[1]} ${sqmreads[2]} ${sqmreads[3]} ${sqmreads[4]} ${sbcals[0]} ${sbcals[1]} ${sbcals[2]} ${sbcals[3]} ${sbcals[4]}>> /var/www/html/data/$y/$mo/$nomfich
-            fi
+      # flash 10 times the LED to indicate that the measurement sequence is beginning
+      led=0
+      while [ $led -le 10 ]
+      do bash -c 'echo "1" > /sys/class/gpio/gpio13/value'
+         sleep 0.25
+         bash -c 'echo "0" > /sys/class/gpio/gpio13/value'
+         sleep 0.25
+         let led=led+1
+      done
+      findIntBrightness
+      if [ $meas -gt $minim ]    # too bright it is daytime
+      then recentime=0
+           let count=count+1
+           echo "=========================="
+           echo "Start measurement #" $count
+           echo "Meas #" $count >> /var/www/html/data/$y/$mo/cosqm.log
+           if [  $nobs != 9999 ] 
+           then let i=i+1 #   never ending loop
+           fi
+           n=0
+           /usr/local/bin/zero_pos.py
+           while [ $n -lt ${#filters[*]} ]
+           do filter=${filters[$n]}
+              echo "Reading sqm, Filter: " $n
+              /bin/sleep $waittime  # let enough time to be sure that the reading comes from that filter
+              /bin/sleep 5.0
+	      /usr/local/bin/sqmleread.pl $sqmip 10001 1 > /root/sqmdata.tmp
+              read sqm < /root/sqmdata.tmp
+              echo $sqm | sed -e 's/,/ /g' | sed -e 's/m//g' > /root/toto.tmp
+              read bidon sb bidon < /root/toto.tmp
+              # keep the sqm value in mag per square arc second
+              sqmread[$n]=`/bin/echo $sb"+"${calib[$n]} |/usr/bin/bc -l`
+              sqmreads[$n]=`printf "%0.2f\n" ${sqmread[$n]}`
+              echo "Sky brightness in band " $n " = " ${sqmreads[$n]}
+              echo "Bright " $n " = " ${sqmreads[$n]} >> /var/www/html/data/$y/$mo/cosqm.log
+              # convert mag par sq arc second to flux
+              # convert mpsas to W cm-2 sr-1
+              # Sanchez de Miguel, A., M. Aube, Jaime Zamorano, M. Kocifaj, J. Roby, and C. Tapia. 
+              # "Sky Quality Meter measurements in a colour-changing world." 
+              # Monthly Notices of the Royal Astronomical Society 467, no. 3 (2017): 2966-2979.
+              #      sbcal[$n]=`/bin/echo "270.0038*10^(-0.4*"${sqmread[$n]}")" |/usr/bin/bc -l`
+              sbcal[$n]=`/bin/echo "270.0038*e((-0.4*"${sqmread[$n]}")*l(10))" |/usr/bin/bc -l`
+              sbcals[$n]=`printf "%0.6e\n" ${sbcal[$n]}`
+              echo "Flux in band " $n " = "${sbcals[$n]}
+              let n=n+1
+              /usr/local/bin/move_filter.py $ang 1
+           done
+           echo "Moving the filter wheel to filter 1 ("${fname[1]}")"
+           echo "Moving to "${fname[1]} >> /var/www/html/data/$y/$mo/cosqm.log
+           /usr/local/bin/move_filter.py $ang 1
+           # short 3 blinks of the led after measurement sequence after parking to red
+           led=0
+           while [ $led -le 3 ]
+           do bash -c 'echo "1" > /sys/class/gpio/gpio13/value'
+              sleep 0.25
+              bash -c 'echo "0" > /sys/class/gpio/gpio13/value'
+              sleep 0.25
+              let led=led+1
+           done
+           nomfich=`date -u +"%Y-%m-%d"`
+           nomfich=$nomfich".txt"
+           time=`date +%Y-%m-%d" "%H:%M:%S`
+           y=`date +%Y`
+           mo=`date +%m`
+           d=`date +%d`
+           if [ ! -d /var/www/html/data/$y ]
+           then mkdir /var/www/html/data/$y
+           fi
+           if [ ! -d /var/www/html/data/$y/$mo ]
+           then /bin/mkdir /var/www/html/data/$y/$mo
+           fi
+           echo $time $lat $lon $alt $temp $waittime ${sqmreads[0]} ${sqmreads[1]} ${sqmreads[2]} ${sqmreads[3]} ${sqmreads[4]} ${sbcals[0]} ${sbcals[1]} ${sbcals[2]} ${sbcals[3]} ${sbcals[4]}>> /var/www/html/data/$y/$mo/$nomfich
+      fi
       time2=`date +%s`
       let idle=150-time2+time1  # one measurement every 2.5 min
       if [ $idle -lt 0 ] ; then let idle=0; fi

@@ -1,4 +1,9 @@
 #!/usr/bin/python
+# move the filter wheel using half step mode on a bipolar stepper
+# 
+# usage: move_filter.py steps slow_level
+# steps = number of steps (400 for a complete rotation)
+# slow_level 1=fastest n=max_speed/n
 import RPi.GPIO as GPIO
 import time
 import sys
@@ -10,20 +15,18 @@ if steps<0:
    steps=-1*steps
    reverse=1
 steps=steps-1
-delay = float(sys.argv[2]) * 0.005
+delay = float(sys.argv[2]) * 0.0075
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
 
 # Enable pins for IN1-4 to control step sequence
-
 coil_A_1_pin = 16
 coil_A_2_pin = 12
 coil_B_1_pin = 20
 coil_B_2_pin = 21
 
 # Set pin states
-
 GPIO.setup(coil_A_1_pin, GPIO.OUT)
 GPIO.setup(coil_A_2_pin, GPIO.OUT)
 GPIO.setup(coil_B_1_pin, GPIO.OUT)
