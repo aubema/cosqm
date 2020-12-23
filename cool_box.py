@@ -6,16 +6,6 @@
 # slow_level 1=fastest n=max_speed/n
 import RPi.GPIO as GPIO
 import time
-import sys
-
-# Variables
-reverse=0
-steps = int(sys.argv[1])
-if steps<0:
-   steps=-1*steps
-   reverse=1
-steps=steps-1
-delay = float(sys.argv[2]) * 0.0075
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
