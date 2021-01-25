@@ -381,9 +381,7 @@ fi
 bash -c 'echo "1" > /sys/class/gpio/gpio18/value'
 sleep 2
 bash -c 'echo "0" > /sys/class/gpio/gpio18/value'
-                globalpos
-
-                
+              
                 
                 
                 
