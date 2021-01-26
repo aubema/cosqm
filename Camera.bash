@@ -39,7 +39,7 @@ cd /home/sand
 itime=10
 gain=1
 luminosite=0
-while [ $luminosite -lt 125 ] && [ $itime -le 200000000 ]
+while [ $luminosite -lt 100 ] && [ $itime -le 200000000 ]
 do /usr/bin/raspistill -t 1 -md 3 -bm -ex off -ag $gain --shutter $itime -dg 1 -st -o /home/sand/skytmp.jpg 
    /usr/bin/convert -resize 640x640^ -gaussian-blur 0.05 -quality 85%  /home/sand/skytmp.jpg /home/sand/sky.jpg
 
@@ -61,7 +61,7 @@ do /usr/bin/raspistill -t 1 -md 3 -bm -ex off -ag $gain --shutter $itime -dg 1 -
    fi
    echo $luminosite $itime
    if [ $gain -lt 16 ]
-   then let gain=gain+1
+   then let gain=gain*2
    else	
         let itime=itime*2
    fi
