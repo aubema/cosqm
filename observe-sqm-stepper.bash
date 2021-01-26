@@ -258,7 +258,7 @@ do    y=`date +%Y`
            done
            nomfich=`date -u +"%Y-%m-%d"`
            nomfich=$nomfich".txt"
-           time=`date +%Y-%m-%d" "%H:%M:%S`
+           time=`date +%Y-%m-%d" "%H-%M-%S`
            y=`date +%Y`
            mo=`date +%m`
            d=`date +%d`

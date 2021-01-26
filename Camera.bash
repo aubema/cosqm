@@ -34,13 +34,13 @@ fi
 if [ ! -d /var/www/html/data/$y/$mo/webcam ]
 then /bin/mkdir /var/www/html/data/$y/$mo/webcam
 fi
-noname=`date +%Y-%m-%d_%H:%M:%S`
+noname=`date +%Y-%m-%d_%H-%M-%S`
 cd /home/sand
-itime=239
+itime=200
 ng=1
 luminosite=0
 while [ $luminosite -lt 50 ] && [ $ng -le 7 ]
-do /usr/bin/raspistill -t 1 -md 3 -bm -ex off -ag 16 --shutter $itime -ISO 800 -st -o /home/sand/skytmp.jpg 
+do /usr/bin/raspistill -t 1 -md 3 -bm -ex off -ag 16 --shutter $itime -dg 1 -st -o /home/sand/skytmp.jpg 
    /usr/bin/convert -resize 640x640^ -gaussian-blur 0.05 -quality 85%  /home/sand/skytmp.jpg /home/sand/sky.jpg
 
 
