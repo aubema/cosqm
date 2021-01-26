@@ -59,7 +59,7 @@ do /usr/bin/raspistill -t 1 -md 3 -bm -ex off -ag $gain --shutter $itime -dg 1 -
    if [ ! $luminosite ] 
    then luminosite=0
    fi
-   echo $luminosite $itime
+   echo $luminosite $gain $itime
    if [ $gain -lt 16 ]
    then let gain=gain*2
    else	
