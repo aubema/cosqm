@@ -60,7 +60,7 @@ do /usr/bin/raspistill -t 1 -md 3 -bm -ex off -ag 16 --shutter $itime -dg 1 -st 
    then luminosite=0
    fi
    echo $luminosite $itime
-   let itime=itime*10
+   let itime=itime*2
    let ng=ng+1
 done
 mv /home/sand/sky.jpg /var/www/html/data/$y/$mo/webcam/$noname".jpg"
