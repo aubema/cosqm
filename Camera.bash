@@ -36,7 +36,7 @@ then /bin/mkdir /var/www/html/data/$y/$mo/webcam
 fi
 noname=`date +%Y-%m-%d_%H-%M-%S`
 cd /home/sand
-itime=200
+itime=100
 ng=1
 luminosite=0
 while [ $luminosite -lt 50 ] && [ $ng -le 7 ]
