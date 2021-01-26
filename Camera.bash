@@ -37,9 +37,9 @@ fi
 noname=`date +%Y-%m-%d_%H-%M-%S`
 cd /home/sand
 itime=50
-ng=1
+gain=1
 luminosite=0
-while [ $luminosite -lt 50 ] && [ $ng -le 7 ]
+while [ $luminosite -lt 50 ] && [ $itime -le 200000000 ]
 do /usr/bin/raspistill -t 1 -md 3 -bm -ex off -ag 16 --shutter $itime -dg 1 -st -o /home/sand/skytmp.jpg 
    /usr/bin/convert -resize 640x640^ -gaussian-blur 0.05 -quality 85%  /home/sand/skytmp.jpg /home/sand/sky.jpg
 
@@ -60,8 +60,11 @@ do /usr/bin/raspistill -t 1 -md 3 -bm -ex off -ag 16 --shutter $itime -dg 1 -st 
    then luminosite=0
    fi
    echo $luminosite $itime
-   let itime=itime*2
-   let ng=ng+1
+   if [ $gain -lt 16 ]
+   then let gain=gain+1
+   else	
+        let itime=itime*2
+   fi
 done
 mv /home/sand/sky.jpg /var/www/html/data/$y/$mo/webcam/$noname".jpg"
 /bin/rm -f /home/sand/mean.tmp
