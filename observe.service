@@ -7,7 +7,7 @@ Type=simple
 Restart=always
 RestartSec=1
 User=root
-ExecStart=/usr/bin/bash /usr/local/bin/observe-sqm-stepper.bash
+ExecStart=/usr/bin/bash /usr/local/bin/observe-sqm-stepper.bash &> /home/sand/cosqm.log
 
 [Install]
 WantedBy=multi-user.target
