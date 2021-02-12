@@ -257,7 +257,7 @@ do    y=`date +%Y`
            nomfich=`date -u +"%Y-%m-%d"`
            nomfich=$nomfich".txt"
            time=`date +%Y-%m-%d" "%H-%M-%S`
-           echo "Time of writing:" `$time >> /var/www/html/data/$y/$mo/cosqm.log
+           echo "Time of writing:" $time >> /var/www/html/data/$y/$mo/cosqm.log
            y=`date +%Y`
            mo=`date +%m`
            d=`date +%d`
