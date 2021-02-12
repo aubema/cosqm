@@ -7,7 +7,7 @@ Type=simple
 Restart=always
 RestartSec=1
 User=root
-ExecStart=/bin/bash /usr/local/bin/observe-sqm-stepper.bash &> /var/www/html/data/observe-service.log
+ExecStart=/bin/bash /usr/local/bin/observe-sqm-stepper.bash > /var/www/html/data/observe-service.log
 
 [Install]
 WantedBy=multi-user.target
