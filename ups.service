@@ -1,5 +1,5 @@
 [Unit]
-Description=USP hat
+Description=UPS hat
 After=network.target
 
 [Service]
@@ -7,7 +7,7 @@ Type=simple
 Restart=always
 RestartSec=1
 User=root
-ExecStart=/usr/bin/sh /usr/local/bin/ups.sh
+ExecStart=/bin/sh /usr/local/bin/ups.sh
 
 [Install]
 WantedBy=multi-user.target
