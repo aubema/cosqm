@@ -143,8 +143,6 @@ fi
 bash -c 'echo "1" > /sys/class/gpio/gpio13/value'
 sleep 2
 bash -c 'echo "0" > /sys/class/gpio/gpio13/value'
-# first gps coordinates
-globalpos
 #=====          
 #
 # main loop
