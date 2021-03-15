@@ -4,7 +4,7 @@
 #  and a shutdown function on one GPIO button
 # scruss - 2017-10
 
-use_button="05"                       # lowest button on PiTFT+
+use_button="01"                       # lowest button on PiTFT+
 
 from gpiozero import Button
 from signal import pause
