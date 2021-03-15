@@ -133,16 +133,16 @@ sleep 10  # let 10 second to the gps to cleanly startup
 read bidon NAME bidon < /root/ligne.tmp
 # Setting led parameters
 # Exports pin to userspace
-if [ ! -e /sys/class/gpio/gpio8 ]; then
-	bash -c 'echo "8" > /sys/class/gpio/export'
+if [ ! -e /sys/class/gpio/gpio13 ]; then
+	bash -c 'echo "13" > /sys/class/gpio/export'
 fi               
-# Sets gpio 8 as an output for the LED
-if [ ! -e /sys/class/gpio/export/8/direction ]; then
-	bash -c 'echo "out" > /sys/class/gpio/gpio8/direction'
+# Sets gpio 13 as an output for the LED
+if [ ! -e /sys/class/gpio/export/13/direction ]; then
+	bash -c 'echo "out" > /sys/class/gpio/gpio13/direction'
 fi
-bash -c 'echo "1" > /sys/class/gpio/gpio8/value'
+bash -c 'echo "1" > /sys/class/gpio/gpio13/value'
 sleep 2
-bash -c 'echo "0" > /sys/class/gpio/gpio8/value'
+bash -c 'echo "0" > /sys/class/gpio/gpio13/value'
 #=====          
 #
 # main loop
@@ -161,9 +161,9 @@ do    y=`date +%Y`
          # blink the led to indicate that the cosqm is waiting for the twilight
          del=0
          while [ $del -le 3 ]
-         do bash -c 'echo "1" > /sys/class/gpio/gpio8/value'
+         do bash -c 'echo "1" > /sys/class/gpio/gpio13/value'
             sleep 19
-            bash -c 'echo "0" > /sys/class/gpio/gpio8/value'
+            bash -c 'echo "0" > /sys/class/gpio/gpio13/value'
             sleep 1
             let del=del+1        
          done
@@ -198,9 +198,9 @@ do    y=`date +%Y`
       # flash 10 times the LED to indicate that the measurement sequence is beginning
       led=0
       while [ $led -le 10 ]
-      do bash -c 'echo "1" > /sys/class/gpio/gpio8/value'
+      do bash -c 'echo "1" > /sys/class/gpio/gpio13/value'
          sleep 0.25
-         bash -c 'echo "0" > /sys/class/gpio/gpio8/value'
+         bash -c 'echo "0" > /sys/class/gpio/gpio13/value'
          sleep 0.25
          let led=led+1
       done
@@ -248,9 +248,9 @@ do    y=`date +%Y`
            # short 3 blinks of the led after measurement sequence after parking to red
            led=0
            while [ $led -le 3 ]
-           do bash -c 'echo "1" > /sys/class/gpio/gpio8/value'
+           do bash -c 'echo "1" > /sys/class/gpio/gpio13/value'
               sleep 0.25
-              bash -c 'echo "0" > /sys/class/gpio/gpio8/value'
+              bash -c 'echo "0" > /sys/class/gpio/gpio13/value'
               sleep 0.25
               let led=led+1
            done
@@ -274,9 +274,9 @@ do    y=`date +%Y`
       if [ $idle -lt 0 ] ; then let idle=0; fi
       echo "Wait " $idle "s before next reading."
       echo "Wait " $idle "s" >> /var/www/html/data/$y/$mo/cosqm.log
-      bash -c 'echo "1" > /sys/class/gpio/gpio8/value'
+      bash -c 'echo "1" > /sys/class/gpio/gpio13/value'
       /bin/sleep $idle
-      bash -c 'echo "0" > /sys/class/gpio/gpio8/value'
+      bash -c 'echo "0" > /sys/class/gpio/gpio13/value'
       time1=`date +%s`
 done
 echo "End of observe-sqm-stepper.bash"
