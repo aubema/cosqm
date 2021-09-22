@@ -108,16 +108,17 @@ globalpos () {
 # main
 #
 # activate gps option 0=off 1=on
-gpsf=1
+gpsf=0
 gpsport="ttyACM0"
 nobs=9999  		# number of times measured if 9999 then infinity
 waittime=10             # at a mag of about 24 the integration time is around 60s
-minim=900 # minimal value of the interval of sky brightness optimal to find SQM position suggested value 900
+minim=1400 # minimal value of the interval of sky brightness optimal to find SQM position suggested value 900 with the red filter
 #
 # set band list
 # wavelengths 0:= Clear ,1:= Red 2:= Green ,3:= Blue ,4:= Yellow
 #
 filters=( 0 1 2 3 4 )
+nbands=4  # we now exclude filter 4 (yellow)
 calib=( 0.0 0.0 0.0 0.0 0.0 ) # magnitude offset for each filter
 ang=80  # steps between each filter (400 for the complete rotation)
 fname=(Clear Red Green Blue Yellow)
@@ -152,6 +153,7 @@ i=0
 while [ $i -lt $nobs ]
 do    y=`date +%Y`
       mo=`date +%m`
+      # check for sufficient darkness while on park position
       findIntegration
       findIntBrightness
       while [ $meas -le $minim ]    # too bright it is daytime
@@ -205,9 +207,13 @@ do    y=`date +%Y`
          let led=led+1
       done
       findIntBrightness
-      if [ $meas -gt $minim ]    # too bright it is daytime
+      if [ $meas -gt $minim ]    # the night has begun
       then recentime=0
            let count=count+1
+           # go to the red filter to find the relevant integration time for that sequence of measurements
+           /usr/local/bin/zero_pos.py
+           /usr/local/bin/move_filter.py $ang 1
+           findIntegration
            echo "=========================="
            echo "Start measurement #" $count
            echo "Meas #" $count >> /var/www/html/data/$y/$mo/cosqm.log
@@ -216,7 +222,7 @@ do    y=`date +%Y`
            fi
            n=0
            /usr/local/bin/zero_pos.py
-           while [ $n -lt ${#filters[*]} ]
+           while [ $n -lt $nbands ]
            do filter=${filters[$n]}
               echo "Reading sqm, Filter: " $n
               /bin/sleep $waittime  # let enough time to be sure that the reading comes from that filter
@@ -242,10 +248,8 @@ do    y=`date +%Y`
               let n=n+1
               /usr/local/bin/move_filter.py $ang 1
            done
-           echo "Moving the filter wheel to filter 1 ("${fname[1]}")"
-           echo "Moving to "${fname[1]} >> /var/www/html/data/$y/$mo/cosqm.log
-           /usr/local/bin/move_filter.py $ang 1
-           # short 3 blinks of the led after measurement sequence after parking to red
+           # here we should be at the park position (filter yellow)
+           # short 3 blinks of the led after measurement sequence after parking to yellow
            led=0
            while [ $led -le 3 ]
            do bash -c 'echo "1" > /sys/class/gpio/gpio13/value'
