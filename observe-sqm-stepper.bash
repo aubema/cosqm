@@ -129,6 +129,9 @@ pos=0
 count=1
 newstep=0
 tim=0
+lon="0"
+lat="0"
+alt="0"
 sleep 10  # let 10 second to the gps to cleanly startup
 /bin/grep "Site_name" /home/sand/localconfig > /root/ligne.tmp
 read bidon NAME bidon < /root/ligne.tmp
@@ -196,6 +199,16 @@ do    y=`date +%Y`
            fi
       else echo "GPS mode off"
            echo "GPS mode off" >> /var/www/html/data/$y/$mo/cosqm.log
+           if [ `grep -c " " /home/sand/localconfig` -ne 0 ]
+           then /bin/grep Longitude /home/sand/localconfig > /root/ligne.tmp
+                read bidon lon bidon < /root/ligne.tmp
+                /bin/grep Latitude /home/sand/localconfig > /root/ligne.tmp
+                read bidon lat bidon < /root/ligne.tmp
+                /bin/grep Altitude /home/sand/localconfig > /root/ligne.tmp
+                read bidon alt bidon < /root/ligne.tmp
+           else 
+                echo "Please edit /home/sand/localconfig and restart observe-sqm-stepper.bash."
+           fi
       fi
       # flash 10 times the LED to indicate that the measurement sequence is beginning
       led=0
