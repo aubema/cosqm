@@ -112,7 +112,7 @@ gpsf=0
 gpsport="ttyACM0"
 nobs=9999  		# number of times measured if 9999 then infinity
 waittime=10             # at a mag of about 24 the integration time is around 60s
-minim=1000 # minimal value of the interval of sky brightness optimal to find SQM position suggested value 900 with the red filter
+minim=900 # minimal value of the interval of sky brightness optimal to find SQM position suggested value 900 with the red filter
 #
 # set band list
 # wavelengths 0:= Clear ,1:= Red 2:= Green ,3:= Blue ,4:= Yellow
