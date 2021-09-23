@@ -112,7 +112,7 @@ gpsf=0
 gpsport="ttyACM0"
 nobs=9999  		# number of times measured if 9999 then infinity
 waittime=10             # at a mag of about 24 the integration time is around 60s
-minim=1400 # minimal value of the interval of sky brightness optimal to find SQM position suggested value 900 with the red filter
+minim=1000 # minimal value of the interval of sky brightness optimal to find SQM position suggested value 900 with the red filter
 #
 # set band list
 # wavelengths 0:= Clear ,1:= Red 2:= Green ,3:= Blue ,4:= Yellow
@@ -214,6 +214,15 @@ do    y=`date +%Y`
            /usr/local/bin/zero_pos.py
            /usr/local/bin/move_filter.py $ang 1
            findIntegration
+           y=`date +%Y`
+           mo=`date +%m`
+           d=`date +%d`
+           if [ ! -d /var/www/html/data/$y ]
+           then mkdir /var/www/html/data/$y
+           fi
+           if [ ! -d /var/www/html/data/$y/$mo ]
+           then /bin/mkdir /var/www/html/data/$y/$mo
+           fi
            echo "=========================="
            echo "Start measurement #" $count
            echo "Meas #" $count >> /var/www/html/data/$y/$mo/cosqm.log
@@ -262,15 +271,6 @@ do    y=`date +%Y`
            nomfich=$nomfich".txt"
            time=`date +%Y-%m-%d" "%H-%M-%S`
            echo "Time of writing:" $time >> /var/www/html/data/$y/$mo/cosqm.log
-           y=`date +%Y`
-           mo=`date +%m`
-           d=`date +%d`
-           if [ ! -d /var/www/html/data/$y ]
-           then mkdir /var/www/html/data/$y
-           fi
-           if [ ! -d /var/www/html/data/$y/$mo ]
-           then /bin/mkdir /var/www/html/data/$y/$mo
-           fi
            echo $time $lat $lon $alt $temp $waittime ${sqmreads[0]} ${sqmreads[1]} ${sqmreads[2]} ${sqmreads[3]} ${sqmreads[4]} ${sbcals[0]} ${sbcals[1]} ${sbcals[2]} ${sbcals[3]} ${sbcals[4]}>> /var/www/html/data/$y/$mo/$nomfich
       fi
       time2=`date +%s`
