@@ -62,12 +62,12 @@ do
 		power_timer=0;
 	fi
 	
-	#If power was not restored in 2 seconds
-	if (( "$power_timer" == 20 )); then 
+	#If power was not restored in 1 seconds
+	if (( "$power_timer" == 10 )); then 
 		#echo $power_timer;
 		echo "Powering off..."
 		sleep 2;
-		systemctl poweroff; #turn off
+		/sbin/poweroff; #turn off
 		exit;
 	fi	
 done
