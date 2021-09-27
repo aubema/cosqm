@@ -62,11 +62,12 @@ do
 		power_timer=0;
 	fi
 	
-	#If power was not restored in 1 seconds
-	if (( "$power_timer" == 10 )); then 
+	#If power was not restored in 60 seconds
+	if (( "$power_timer" == 600 )); then 
 		#echo $power_timer;
 		echo "Powering off..."
-		/sbin/poweroff; #turn off
+		sleep 2;
+		systemctl poweroff; #turn off
 		exit;
 	fi	
 done
