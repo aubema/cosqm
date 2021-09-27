@@ -66,7 +66,6 @@ do
 	if (( "$power_timer" == 10 )); then 
 		#echo $power_timer;
 		echo "Powering off..."
-		sleep 2;
 		/sbin/poweroff; #turn off
 		exit;
 	fi	
