@@ -161,8 +161,9 @@ do    y=`date +%Y`
       findIntBrightness
       while [ $meas -le $minim ]    # too bright it is daytime
       do findIntBrightness
+         timetmp=`date`
 	 echo "Brightness = " $meas "Wait 1 min until twilight ("$minim"<(SBx100))"
-         echo "BrightLev= " $meas >> /var/www/html/data/$y/$mo/cosqm.log
+         echo "BrightLev= " $meas $timetmp >> /var/www/html/data/$y/$mo/cosqm.log
          # blink the led to indicate that the cosqm is waiting for the twilight
          del=0
          while [ $del -le 3 ]
