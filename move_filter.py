@@ -46,24 +46,24 @@ def setStep(w1, w2, w3, w4):
 j=0
 if reverse==0:
 	for i in range(0, steps):
-    		j=j+1
+		j=j+1
 		if j==1:
-       		setStep(1,0,1,0)
-    		if j==2:
-       		setStep(1,0,0,0)
-    		if j==3:
-      			setStep(1,0,0,1)
-    		if j==4:
-       		setStep(0,0,0,1)
-    		if j==5:
-       		setStep(0,1,0,1)
-    		if j==6:
-       		setStep(0,1,0,0)
-    		if j==7:
-       		setStep(0,1,1,0)
-    		if j==8:
-       		setStep(0,0,1,0)
-       		j=0
+			setStep(1,0,1,0)
+		if j==2:
+			setStep(1,0,0,0)
+		if j==3:
+			setStep(1,0,0,1)
+		if j==4:
+			setStep(0,0,0,1)
+		if j==5:
+			setStep(0,1,0,1)
+		if j==6:
+			setStep(0,1,0,0)
+		if j==7:
+			setStep(0,1,1,0)
+		if j==8:
+			setStep(0,0,1,0)
+			j=0
 
 
 # Reverse previous step sequence to reverse motor direction
