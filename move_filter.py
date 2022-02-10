@@ -69,7 +69,7 @@ if reverse==0:
 # Reverse previous step sequence to reverse motor direction
 else:
 	for i in range(0, steps):
-    		j=j+1
+		j=j+1
 		if j==1:
        		setStep(0,0,1,0)
     		if j==2:
