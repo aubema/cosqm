@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # move the filter wheel using half step mode on a bipolar stepper
 # 
 # usage: move_filter.py steps slow_level
