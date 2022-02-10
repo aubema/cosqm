@@ -26,7 +26,7 @@ GPIO.setup(coil_B_1_pin, GPIO.OUT)
 GPIO.setup(coil_B_2_pin, GPIO.OUT)
 
 # set the sensor pin
-sensor_gpio=3
+sensor_gpio=25
 GPIO.setup(sensor_gpio, GPIO.IN)
 
 # Function for step sequence
